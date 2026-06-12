@@ -4,6 +4,7 @@ agentic
 IDs?
 [Cc]obertura
 [Cc]ommitlint
+[Cc]ocogitto
 msg
 [Pp]roofhouse
 regexes
@@ -36,7 +37,7 @@ superset
 [Tt]oolchains?
 [Vv]endor(ed|ing)
 [Uu]ntrusted
-Changelog
+CHANGELOG|[Cc]hangelog
 DCO
 API
 BSD
