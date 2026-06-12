@@ -1,5 +1,6 @@
 addopts
 AGENTMSG
+cocogitto
 EDITMSG
 excinfo
 pipefail

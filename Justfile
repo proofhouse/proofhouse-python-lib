@@ -21,6 +21,22 @@ default: test
 
 # --- Setup ---
 
+# Set up development environment. New contributors run this once after
+# cloning. Idempotent: re-running upgrades dependencies and refreshes
+# Vale's synced style packages.
+setup:
+    just install-brew
+    just install-tools
+
+# Install Homebrew dependencies from Brewfile.
+install-brew:
+    brew bundle check || brew bundle install
+
+# Refresh non-brew tooling. Today that means Vale's synced style
+# packages; grows as new sync-style tools land.
+install-tools:
+    vale sync
+
 # Sync Vale styles and dictionaries. Run once after cloning the repo,
 # and whenever .vale.ini's Packages list changes. CI runs this before
 # `just lint-prose`.

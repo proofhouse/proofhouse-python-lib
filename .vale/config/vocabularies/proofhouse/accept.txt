@@ -19,6 +19,7 @@ substrings
 [Ff]ormatter[s]?
 [Gg]itleaks
 Justfile
+Brewfile
 mtime[s]?
 [Kk]eyless
 [Pp]rek
