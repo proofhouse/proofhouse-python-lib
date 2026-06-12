@@ -18,6 +18,7 @@ dev = [
     "complexipy>=5.5.0",
     "pyrefly>=1.0.0",
     "ruff>=0.15.17",
+    "vulture>=2.16",
 ]
 test = [
     "pytest>=9.0.3",
@@ -203,3 +204,14 @@ known-first-party = ["proofhouse_python_lib"]
     # Test dirs are intentionally __init__-free under importlib mode.
     "INP001",
 ]
+
+[tool.vulture]
+# src and tests scan as one tree on purpose: a library's exported
+# names have no callers inside src itself, so the test suite is what
+# proves a definition live. A public helper no test touches is either
+# untested or dead, and vulture flagging it forces that question.
+# There is no allowlist today because nothing here gets invoked
+# through a registry, decorator, or packaging entry point that a
+# static scan would miss; if one ever becomes necessary, each entry
+# must say which hidden caller justifies it.
+paths = ["src", "tests"]

@@ -4,6 +4,7 @@ autostash
 cocogitto
 commitlint
 complexipy
+deadcode
 docstring
 docstrings
 dunder

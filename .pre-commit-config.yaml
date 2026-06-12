@@ -116,6 +116,16 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Dead code detection at the same commit and push stages where
+      # the Go twin's lint hook runs its unused-code analyzer. vulture
+      # ships as its own binary, hence its own hook.
+      - id: vulture
+        name: vulture check
+        entry: just lint-deadcode
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched

@@ -111,7 +111,7 @@ fix-markdown *args:
 # Aggregator over the Python source gates. CI's lint job invokes only
 # this recipe, so wiring up a new gate means appending one dependency
 # here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`.
@@ -136,6 +136,14 @@ lint-types *args:
 # [tool.complexipy] in pyproject.toml.
 lint-complexity:
     uv run complexipy
+
+# Report unused definitions with vulture, which pairs every name
+# defined under the [tool.vulture] paths in pyproject.toml against
+# the names used there. With src and tests in one scan, the tests
+# stand in for downstream callers of the published API, so this gate
+# asks "does anything exercise this?" of every public name.
+lint-deadcode:
+    uv run vulture
 
 # Lint prose in Markdown files and source comments via vale. Glob
 # excludes the LICENSE (canonical Apache 2.0 text), the auto-generated
