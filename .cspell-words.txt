@@ -6,6 +6,7 @@ commitlint
 EDITMSG
 excinfo
 hardwrap
+matrixed
 pipefail
 prek
 proofhouse

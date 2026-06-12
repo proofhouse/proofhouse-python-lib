@@ -143,3 +143,5 @@ uv
 [Pp]yproject
 [Pp]ytest
 lex(ed|es|ing)
+CPython
+[Mm]atrixed

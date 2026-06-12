@@ -1,0 +1,100 @@
+---
+# Main quality gate. Runs the test suite (matrixed across
+# linux/macOS/windows native runners, crossed with CPython 3.12
+# through 3.14 plus the free-threaded 3.14t build) and the lock-drift
+# check on every pull request and every push to `main`. Each gate
+# runs as its own job so a flake in one block does not require
+# rerunning the others and the PR status surfaces which gate fired.
+# The prose, spelling, Markdown, config, and YAML lint gates land in
+# follow-up workflows that handle each tool's distinct install path.
+#
+# Every job installs `just` from a SHA-pinned casey/just release
+# tarball, verifies the bundled SHA256SUMS, and then invokes the
+# matching `just <recipe>` so the recipe is the single source of
+# truth for what the gate runs.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lock-check:
+    name: lock-check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Check lock drift
+        run: just lock-check
+
+  test:
+    name: "test (${{ matrix.os }}, ${{ matrix.python }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15
+          - windows-2025
+        python:
+          - '3.12'
+          - '3.13'
+          - '3.14'
+          - '3.14t'
+    # uv reads UV_PYTHON when picking an interpreter, so `uv sync`
+    # below and the `uv run` inside the test recipe both target the
+    # slot's Python without any recipe changes.
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - name: Harden the runner
+        if: runner.os == 'Linux'
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Install Python ${{ matrix.python }}
+        run: uv python install ${{ matrix.python }}
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Run tests
+        run: just test
