@@ -113,6 +113,12 @@ lint-markdown *args:
 lint-config *args:
     biome check --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
 
+# Lint YAML files (config, workflows, action definitions). --strict
+# treats warnings as errors so the gate matches CI behavior; per-rule
+# tuning lives in .yamllint.yaml.
+lint-yaml *args:
+    yamllint --strict {{ if args == "" { "." } else { args } }}
+
 # --- Test ---
 
 # Run tests
