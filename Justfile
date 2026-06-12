@@ -19,6 +19,14 @@ source_date_epoch := `git log -1 --format=%ct 2>/dev/null || echo "0"`
 # Default recipe
 default: test
 
+# --- Setup ---
+
+# Sync Vale styles and dictionaries. Run once after cloning the repo,
+# and whenever .vale.ini's Packages list changes. CI runs this before
+# `just lint-prose`.
+vale-sync:
+    vale sync
+
 # --- Build ---
 
 # uv_build stamps fixed timestamps into its archives (1980-01-01 in
@@ -50,6 +58,20 @@ build-repro-check:
 # Clean build artifacts
 clean:
     rm -rf dist .pytest_cache
+
+# --- Lint ---
+
+# Lint prose in Markdown files and source comments via vale. Glob
+# excludes the LICENSE (canonical Apache 2.0 text), the auto-generated
+# changelog, vale's own style packages, scratch dirs, the gitignored
+# agent worktrees under .claude/worktrees/ (whose nested virtualenvs
+# vale would otherwise crawl), the COMMIT_AGENTMSG draft (the
+# `lint-commit-msg` recipe owns that one under the stricter commit
+# scope), the virtualenv, build output, and the pytest cache (pytest
+# drops a README.md in there); the per-file-type rules in .vale.ini
+# decide what else gets inspected.
+lint-prose *args:
+    vale --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*}' {{ if args == "" { "." } else { args } }}
 
 # --- Test ---
 
