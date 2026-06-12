@@ -59,6 +59,21 @@ build-repro-check:
 clean:
     rm -rf dist .pytest_cache
 
+# --- Format ---
+
+# Format Markdown files (whitespace, list markers, code fence styles).
+# Rewrites in place. Pair with `fix-markdown` for semantic lint fixes.
+format-markdown *args:
+    rumdl fmt {{ if args == "" { "." } else { args } }}
+
+# --- Fix ---
+
+# Apply rumdl's auto-fixable rules to Markdown files. Complement to
+# `format-markdown` (which only rewrites whitespace and ordering, not
+# semantic lints).
+fix-markdown *args:
+    rumdl check --fix {{ if args == "" { "." } else { args } }}
+
 # --- Lint ---
 
 # Lint prose in Markdown files and source comments via vale. Glob
@@ -81,6 +96,12 @@ lint-prose *args:
 # never trips the tree-wide spell check.
 lint-spelling *args:
     cspell --config .cspell.jsonc --no-summary --no-progress --no-must-find-files --exclude COMMIT_AGENTMSG {{ if args == "" { "." } else { args } }}
+
+# Lint Markdown files against the project's .rumdl.toml ruleset.
+# rumdl handles structural lints (heading style, list marker style,
+# code fence style); vale handles prose.
+lint-markdown *args:
+    rumdl check {{ if args == "" { "." } else { args } }}
 
 # --- Test ---
 
