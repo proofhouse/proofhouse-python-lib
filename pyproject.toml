@@ -12,6 +12,7 @@ dependencies = []
 dev = [
     "pytest>=9.0.3",
     "pytest-mock>=3.15.1",
+    "ruff>=0.15.17",
 ]
 
 [build-system]
@@ -21,3 +22,53 @@ build-backend = "uv_build"
 [tool.pytest]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    # Conflicts with the formatter (ruff itself warns when enabled).
+    "COM812",
+    # Conflicts with the formatter (ruff itself warns when enabled).
+    "ISC001",
+    # Docstrings land where they carry signal, not as ritual on every
+    # module, class, and function.
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    # License headers are enforced by the reuse SPDX gate, and CPY001
+    # is preview-only.
+    "CPY",
+    # Plain TODOs without an author or linked issue are allowed.
+    "TD002",
+    "TD003",
+    "FIX002",
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["proofhouse_python_lib"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    # Bare asserts are pytest's assertion API.
+    "S101",
+    # Literal expected values in test tables read better than named
+    # constants.
+    "PLR2004",
+    # Test dirs are intentionally __init__-free under importlib mode.
+    "INP001",
+]

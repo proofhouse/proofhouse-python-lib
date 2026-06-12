@@ -76,6 +76,25 @@ repos:
 
   - repo: local
     hooks:
+      # Both ruff hooks delegate to Justfile recipes so the hook, CI,
+      # and a manual run all execute the same command line.
+      # pass_filenames is off because ruff resolves its own file set
+      # from pyproject.toml; types: [python] still keeps the pair from
+      # firing on commits that touch no Python at all.
+      - id: ruff-format
+        name: ruff format
+        entry: just format
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: ruff-check
+        name: ruff check
+        entry: just lint-ruff
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched
