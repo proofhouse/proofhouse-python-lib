@@ -5,6 +5,7 @@ cocogitto
 commitlint
 docstring
 docstrings
+dunder
 EDITMSG
 excinfo
 hardwrap
