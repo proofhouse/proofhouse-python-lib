@@ -1,8 +1,9 @@
 ---
-# Main quality gate. Runs the test suite (matrixed across
-# linux/macOS/windows native runners, crossed with CPython 3.12
-# through 3.14 plus the free-threaded 3.14t build) and the lock-drift
-# check on every pull request and every push to `main`. Each gate
+# Main quality gate. Runs the Python lint aggregator, the test suite
+# (matrixed across linux/macOS/windows native runners, crossed with
+# CPython 3.12 through 3.14 plus the free-threaded 3.14t build), and
+# the lock-drift check on every pull request and every push to
+# `main`. Each gate
 # runs as its own job so a flake in one block does not require
 # rerunning the others and the PR status surfaces which gate fired.
 # The prose, spelling, Markdown, config, and YAML lint gates land in
@@ -28,6 +29,32 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Invokes only the `lint-py-all` aggregator recipe, so the job
+  # stays unchanged as new Python gates land — each gate appends
+  # itself to the aggregator in the Justfile instead.
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Run Python lint gates
+        run: just lint-py-all
+
   lock-check:
     name: lock-check
     runs-on: ubuntu-24.04

@@ -3,6 +3,8 @@ AGENTMSG
 autostash
 cocogitto
 commitlint
+docstring
+docstrings
 EDITMSG
 excinfo
 hardwrap

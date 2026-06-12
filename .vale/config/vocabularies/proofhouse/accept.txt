@@ -145,3 +145,4 @@ uv
 lex(ed|es|ing)
 CPython
 [Mm]atrixed
+[Dd]ocstrings?
