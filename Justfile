@@ -66,6 +66,10 @@ clean:
 format-markdown *args:
     rumdl fmt {{ if args == "" { "." } else { args } }}
 
+# Format JSON / JS / TS files in place via biome's formatter.
+format-config *args:
+    biome format --write {{ if args == "" { "." } else { args } }}
+
 # --- Fix ---
 
 # Apply rumdl's auto-fixable rules to Markdown files. Complement to
@@ -102,6 +106,12 @@ lint-spelling *args:
 # code fence style); vale handles prose.
 lint-markdown *args:
     rumdl check {{ if args == "" { "." } else { args } }}
+
+# Lint JSON / JS / TS files via biome. Recommended ruleset, biome's
+# own formatter; covers config files (biome.json, .cspell.jsonc) and
+# any future scripts under .github/actions/.
+lint-config *args:
+    biome check --files-ignore-unknown=true {{ if args == "" { "." } else { args } }}
 
 # --- Test ---
 
