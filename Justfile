@@ -111,7 +111,7 @@ fix-markdown *args:
 # Aggregator over the Python source gates. CI's lint job invokes only
 # this recipe, so wiring up a new gate means appending one dependency
 # here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`.
@@ -152,6 +152,13 @@ lint-deadcode:
 # scope.
 lint-dup-code:
     uv run pylint src tests
+
+# Verify the package's import graph against the [tool.importlinter]
+# contracts in pyproject.toml: the expression pipeline stages stay
+# layered, and none of them imports the shipped testing helpers. The
+# bare command is import-linter's own CLI, not this recipe recursing.
+lint-imports:
+    uv run lint-imports
 
 # Lint prose in Markdown files and source comments via vale. Glob
 # excludes the LICENSE (canonical Apache 2.0 text), the auto-generated
