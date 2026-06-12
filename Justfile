@@ -73,6 +73,15 @@ clean:
 lint-prose *args:
     vale --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*}' {{ if args == "" { "." } else { args } }}
 
+# Check spelling across the tree against the project dictionary at
+# .cspell-words.txt. cspell ignores binaries, generated files, the
+# virtualenv, and build output via the ignorePaths block in
+# .cspell.jsonc. The COMMIT_AGENTMSG draft gets excluded here and
+# checked by `lint-commit-msg` instead, so a work-in-progress message
+# never trips the tree-wide spell check.
+lint-spelling *args:
+    cspell --config .cspell.jsonc --no-summary --no-progress --no-must-find-files --exclude COMMIT_AGENTMSG {{ if args == "" { "." } else { args } }}
+
 # --- Test ---
 
 # Run tests

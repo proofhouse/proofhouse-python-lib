@@ -1,0 +1,27 @@
+{
+  "language": "en",
+  "ignorePaths": [
+    "**/*.d.ts",
+    "**/*.log",
+    ".claude/worktrees/**/*",
+    ".pytest_cache/**/*",
+    ".rumdl_cache/**/*",
+    ".vale/**/*",
+    ".venv/**/*",
+    "coverage.json",
+    "coverage.xml",
+    "dist/**/*",
+    "LICENSE",
+    "node_modules/**/*",
+    "tmp/**/*",
+    "uv.lock"
+  ],
+  "dictionaryDefinitions": [
+    {
+      "name": "proofhouse",
+      "path": "./.cspell-words.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["proofhouse", "python"]
+}

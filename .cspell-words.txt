@@ -1,0 +1,9 @@
+addopts
+AGENTMSG
+EDITMSG
+excinfo
+pipefail
+prek
+proofhouse
+testpaths
+worktrees
