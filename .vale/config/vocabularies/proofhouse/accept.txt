@@ -149,3 +149,4 @@ CPython
 pyrefly
 complexipy
 cyclomatic
+pylint

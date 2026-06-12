@@ -111,7 +111,7 @@ fix-markdown *args:
 # Aggregator over the Python source gates. CI's lint job invokes only
 # this recipe, so wiring up a new gate means appending one dependency
 # here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`.
@@ -144,6 +144,14 @@ lint-complexity:
 # asks "does anything exercise this?" of every public name.
 lint-deadcode:
     uv run vulture
+
+# Find copy-pasted logic with pylint's similarities checker, the only
+# message the [tool.pylint] tables in pyproject.toml leave enabled.
+# pylint accepts the directories to scan solely as command-line
+# arguments, which makes this recipe the home of the src and tests
+# scope.
+lint-dup-code:
+    uv run pylint src tests
 
 # Lint prose in Markdown files and source comments via vale. Glob
 # excludes the LICENSE (canonical Apache 2.0 text), the auto-generated

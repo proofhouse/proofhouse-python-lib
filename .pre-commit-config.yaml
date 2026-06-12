@@ -126,6 +126,17 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Clone detection rides the Go twin's lint hook as the dupl
+      # analyzer; pylint's similarities checker fills that slot here
+      # and, being a separate binary, gets a hook of its own at the
+      # same stages.
+      - id: pylint-dup-code
+        name: pylint duplicate-code check
+        entry: just lint-dup-code
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched

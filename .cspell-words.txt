@@ -8,6 +8,7 @@ deadcode
 docstring
 docstrings
 dunder
+dupl
 EDITMSG
 excinfo
 gocognit
@@ -16,6 +17,7 @@ matrixed
 pipefail
 prek
 proofhouse
+pylint
 rumdl
 tbhb
 testpaths
