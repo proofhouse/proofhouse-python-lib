@@ -51,7 +51,11 @@ repos:
         # via --glob; .vale.ini cannot exempt it on its own because the
         # explicit per-rule toggles in [*.md] survive an empty
         # BasedOnStyles in the CHANGELOG.md block. Exclude it here too.
-        exclude: ^CHANGELOG\.md$
+        # The apm-deployed rule and skill files under .claude/ are
+        # vendored prose pinned by hash in apm.lock.yaml, so the
+        # consumer can't reword them; lint-prose skips them via --glob,
+        # and this exclude keeps the hook aligned with the recipe.
+        exclude: ^(CHANGELOG\.md|\.claude/rules/worktree-wip\.md|\.claude/skills/)
         # Output template from the proofhouse package; one machine-parseable line per finding.
         args: [--output=proofhouse-agent.tmpl]
 
