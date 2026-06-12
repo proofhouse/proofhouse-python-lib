@@ -137,6 +137,17 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Import boundaries sit in the Go twin's lint hook as the
+      # depguard analyzer; import-linter holds that slot here and,
+      # running as a separate binary, gets its own hook at the same
+      # stages.
+      - id: import-linter
+        name: import-linter contracts check
+        entry: just lint-imports
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched

@@ -5,6 +5,7 @@ cocogitto
 commitlint
 complexipy
 deadcode
+depguard
 docstring
 docstrings
 dunder
@@ -13,6 +14,7 @@ EDITMSG
 excinfo
 gocognit
 hardwrap
+importlinter
 matrixed
 pipefail
 prek

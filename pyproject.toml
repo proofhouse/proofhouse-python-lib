@@ -16,6 +16,7 @@ dependencies = []
 dev = [
     { include-group = "test" },
     "complexipy>=5.5.0",
+    "import-linter>=2.11",
     "pylint>=4.0.5",
     "pyrefly>=1.0.0",
     "ruff>=0.15.17",
@@ -39,6 +40,36 @@ paths = ["src", "tests"]
 # complexipy ships the same default today; pinning it here keeps an
 # upstream default change from moving the gate without a diff.
 max-complexity-allowed = 15
+
+[tool.importlinter]
+root_package = "proofhouse_python_lib"
+
+# The expression pipeline flows one way: parser consumes the lexer's
+# tokens and builds AST nodes, the lexer produces tokens, and every
+# stage may raise from errors. An upward import (tokens reaching into
+# the parser, say) would close that flow into a cycle, so each stage
+# may only see the stages beneath it.
+[[tool.importlinter.contracts]]
+name = "expression pipeline stages stay ordered"
+type = "layers"
+containers = ["proofhouse_python_lib"]
+layers = ["parser", "ast", "lexer", "tokens", "errors"]
+
+# The testing helpers ship in the wheel for downstream test suites.
+# Were a pipeline stage to import them, a test-only projection like
+# kinds() would become part of the engine's runtime surface, so every
+# stage is barred from the subpackage outright.
+[[tool.importlinter.contracts]]
+name = "pipeline stages stay clear of testing helpers"
+type = "forbidden"
+source_modules = [
+    "proofhouse_python_lib.parser",
+    "proofhouse_python_lib.ast",
+    "proofhouse_python_lib.lexer",
+    "proofhouse_python_lib.tokens",
+    "proofhouse_python_lib.errors",
+]
+forbidden_modules = ["proofhouse_python_lib.testing"]
 
 [tool.pylint.main]
 # tests/ stays __init__-free for pytest's importlib mode, and pylint
