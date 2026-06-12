@@ -7,6 +7,7 @@ import pytest
 
 from proofhouse_python_lib.errors import ExpressionError, LexError
 from proofhouse_python_lib.lexer import tokenize
+from proofhouse_python_lib.testing import kinds
 from proofhouse_python_lib.tokens import Token, TokenKind
 
 
@@ -38,18 +39,6 @@ from proofhouse_python_lib.tokens import Token, TokenKind
             id="adjacent-tokens",
         ),
         pytest.param(
-            "+-*/()",
-            (
-                Token(TokenKind.PLUS, "+", 0),
-                Token(TokenKind.MINUS, "-", 1),
-                Token(TokenKind.STAR, "*", 2),
-                Token(TokenKind.SLASH, "/", 3),
-                Token(TokenKind.LPAREN, "(", 4),
-                Token(TokenKind.RPAREN, ")", 5),
-            ),
-            id="every-single-char-kind",
-        ),
-        pytest.param(
             " 12 * (34 - 5) / 6 ",
             (
                 Token(TokenKind.NUMBER, "12", 1),
@@ -72,9 +61,45 @@ def test_tokenize_yields_expected_tokens(
     assert tokenize(text) == expected
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        pytest.param(
+            "+-*/()",
+            (
+                TokenKind.PLUS,
+                TokenKind.MINUS,
+                TokenKind.STAR,
+                TokenKind.SLASH,
+                TokenKind.LPAREN,
+                TokenKind.RPAREN,
+            ),
+            id="every-single-char-kind",
+        ),
+        pytest.param(
+            "(1+2)*3",
+            (
+                TokenKind.LPAREN,
+                TokenKind.NUMBER,
+                TokenKind.PLUS,
+                TokenKind.NUMBER,
+                TokenKind.RPAREN,
+                TokenKind.STAR,
+                TokenKind.NUMBER,
+            ),
+            id="mixed-expression",
+        ),
+    ],
+)
+def test_tokenize_yields_expected_kind_sequence(
+    text: str, expected: tuple[TokenKind, ...]
+) -> None:
+    assert kinds(text) == expected
+
+
 @pytest.mark.parametrize("text", ["", " ", " \t\n  "], ids=["empty", "space", "mixed"])
 def test_tokenize_empty_or_whitespace_input_yields_no_tokens(text: str) -> None:
-    assert tokenize(text) == ()
+    assert kinds(text) == ()
 
 
 @pytest.mark.parametrize(
