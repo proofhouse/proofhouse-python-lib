@@ -16,6 +16,7 @@ dependencies = []
 dev = [
     { include-group = "test" },
     "complexipy>=5.5.0",
+    "pylint>=4.0.5",
     "pyrefly>=1.0.0",
     "ruff>=0.15.17",
     "vulture>=2.16",
@@ -38,6 +39,31 @@ paths = ["src", "tests"]
 # complexipy ships the same default today; pinning it here keeps an
 # upstream default change from moving the gate without a diff.
 max-complexity-allowed = 15
+
+[tool.pylint.main]
+# tests/ stays __init__-free for pytest's importlib mode, and pylint
+# rejects plain directories unless told to recurse into them.
+recursive = true
+
+[tool.pylint."messages control"]
+# Only the similarities checker runs. ruff and pyrefly already police
+# style, correctness, and typing, and a second opinion on those rules
+# would just produce dueling findings; the one diagnostic neither of
+# them can emit is cross-file duplicate-code, so the catalog goes dark
+# except for it.
+disable = ["all"]
+enable = ["duplicate-code"]
+
+[tool.pylint.similarities]
+# A clone is four matching lines. That is pylint's own default, written
+# down so the threshold can only change through a reviewed edit here,
+# never through an upstream release.
+min-similarity-lines = 4
+# Modules in one package naturally import the same neighbors, and
+# docstrings restate the same contracts in the same words; neither is
+# logic worth deduplicating, so both stay outside the comparison.
+ignore-imports = true
+ignore-docstrings = true
 
 [tool.pytest]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]
