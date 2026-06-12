@@ -231,7 +231,7 @@ lint-imports:
 # caches (both drop a README.md in there); the per-file-type rules in
 # .vale.ini decide what else gets inspected.
 lint-prose *args:
-    vale --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*,.complexipy_cache/*}' {{ if args == "" { "." } else { args } }}
+    vale --output=proofhouse-agent.tmpl --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*,.complexipy_cache/*}' {{ if args == "" { "." } else { args } }}
 
 # Check spelling across the tree against the project dictionary at
 # .cspell-words.txt. cspell ignores binaries, generated files, the

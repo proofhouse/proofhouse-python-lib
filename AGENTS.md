@@ -20,4 +20,4 @@ The branch-coverage gate holds at 100%, so an unreached arm marks a hole in the 
 
 ## Prose lint output
 
-When fixing vale findings, run `vale --output=proofhouse-agent.tmpl <paths>` instead of the default output. The template, synced from the shared proofhouse style package, prints one self-contained line per finding (location, severity, rule, the exact matched text, and the replacement parameter when the rule defines one) plus a totals line, so you can apply fixes without follow-up searching. Empty output means a clean run, and the exit code carries the result.
+The toolchain already defaults vale to the agent template: `just lint-prose` and the prek vale hook both pass `--output=proofhouse-agent.tmpl`, so the flag only matters when you invoke `vale` directly. The template, synced from the shared proofhouse style package, prints one self-contained line per finding (location, severity, rule, the exact matched text, and the replacement parameter when the rule defines one) plus a totals line, so you can apply fixes without follow-up searching. Empty output means a clean run, and the exit code carries the result.
