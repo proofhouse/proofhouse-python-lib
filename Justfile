@@ -10,6 +10,45 @@ set positional-arguments := true
 # on Linux.
 set script-interpreter := ['bash', '-eu']
 
+# Locate a Docker-compatible container runtime. Probe PATH first, then
+# well-known install locations so the recipe still works inside agentic
+# harnesses or sandboxes that strip /usr/local/bin from PATH. Override by
+# setting CONTAINER_RUNTIME in the environment.
+container_runtime := env("CONTAINER_RUNTIME", `bash -c '
+    docker_path=$(command -v docker 2>/dev/null || true)
+    podman_path=$(command -v podman 2>/dev/null || true)
+    for p in "$docker_path" \
+             /usr/local/bin/docker \
+             /opt/homebrew/bin/docker \
+             /Applications/Docker.app/Contents/Resources/bin/docker \
+             "$HOME/.orbstack/bin/docker" \
+             "$HOME/.rd/bin/docker" \
+             "$podman_path" \
+             /opt/podman/bin/podman; do
+        if [ -n "$p" ] && [ -x "$p" ]; then echo "$p"; exit 0; fi
+    done
+    echo docker
+'`)
+
+# actionlint version pin. The upstream image bundles actionlint (and the
+# shellcheck it shells out to) at a known version, so we pin the image
+# by digest rather than install either tool on the host. Renovate
+# tracks the version + digest pair via the Justfile customManager in
+# the shared org preset (see .github/renovate.json5).
+#
+# renovate: datasource=docker depName=rhysd/actionlint
+actionlint_version := "1.7.12"
+actionlint_image := "docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667"
+
+# actionlint invocation. Mounts the repo read-only at /repo with -w /repo
+# so actionlint finds .github/workflows/ and .github/actionlint.yaml.
+# DOCKER_CONFIG points at a fresh empty directory so docker skips the
+# osxkeychain credential helper (public Docker Hub pulls don't need it,
+# and sandboxed environments can't always reach the helper binary);
+# PATH gets the runtime's directory prepended for cases where docker
+# itself isn't on the calling shell's PATH.
+actionlint := 'DOCKER_CONFIG="$(mktemp -d)" PATH="$(dirname ' + container_runtime + '):$PATH" ' + container_runtime + ' run --rm -v "$(pwd):/repo:ro" -w /repo ' + actionlint_image
+
 # Build metadata. `source_date_epoch` is the committer date as a unix
 # timestamp, not build invocation time, so two builds of the same
 # commit see the same instant wherever SOURCE_DATE_EPOCH is honored.
@@ -108,19 +147,29 @@ fix-markdown *args:
 
 # --- Lint ---
 
-# Aggregator over the Python source gates. CI's lint job invokes only
-# this recipe, so wiring up a new gate means appending one dependency
-# here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports lint-reuse
+# Aggregator over the Python source gates plus actionlint. CI's lint
+# job invokes only this recipe, so wiring up a new gate means appending
+# one dependency here instead of editing workflow YAML.
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports lint-reuse lint-workflows
+
+# Run every linter that operates on the source tree. Aggregator over
+# the Python gates (via `lint-py-all`), prose (vale), spelling
+# (cspell), Markdown (rumdl), config / JS / TS (biome), and YAML
+# (yamllint).
+lint: lint-py-all lint-prose lint-spelling lint-markdown lint-config lint-yaml
 
 # Check that ruff's formatter would change nothing. Read-only twin of
-# `just format`.
+# `just format`. The path-less invocation deliberately walks the whole
+# tree, tests included — `[tool.ruff] src` names import-resolution
+# roots, not scan scope.
 lint-ruff-format *args:
     uv run ruff format --check {{ args }}
 
 # Lint Python source against the ruff ruleset configured in
 # pyproject.toml ([tool.ruff.lint] selects ALL with documented
-# exemptions).
+# exemptions). The path-less invocation deliberately walks the whole
+# tree, tests included — `[tool.ruff] src` names import-resolution
+# roots, not scan scope.
 lint-ruff *args:
     uv run ruff check {{ args }}
 
@@ -209,6 +258,17 @@ lint-config *args:
 # tuning lives in .yamllint.yaml.
 lint-yaml *args:
     yamllint --strict {{ if args == "" { "." } else { args } }}
+
+# Lint GitHub Actions workflow files via actionlint. actionlint walks
+# `.github/workflows/` by default, parses each workflow, and flags
+# unknown actions, mis-typed expressions, shellcheck issues inside
+# `run:` blocks, and SHA-pin drift. Complements `lint-yaml` (which
+# checks YAML structure) with workflow-shape rules yamllint can't see.
+# Runs from the digest-pinned Docker image declared at the top of this
+# file; Renovate bumps the version + digest via the shared Justfile
+# customManager.
+lint-workflows:
+    {{ actionlint }}
 
 # Pre-validate a drafted commit message against the same gates the
 # commit-msg hook runs, so message problems surface while iterating
