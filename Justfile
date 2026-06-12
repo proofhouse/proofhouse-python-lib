@@ -21,9 +21,31 @@ default: test
 
 # --- Build ---
 
+# uv_build stamps fixed timestamps into its archives (1980-01-01 in
+# the wheel, the unix epoch in the sdist) rather than reading
+# SOURCE_DATE_EPOCH, so builds of the same tree match bit for bit by
+# construction. Exporting the epoch anyway pins any tool in the build
+# path that does honor it, at no cost when none does.
+
 # Build the sdist and wheel
 build:
-    uv build
+    SOURCE_DATE_EPOCH={{ source_date_epoch }} uv build
+
+# Build twice into separate temp dirs and fail if the wheel or sdist
+# digests differ between runs. Empirical backstop for the
+# reproducibility contract above; runs without touching dist/.
+[script]
+build-repro-check:
+    out_a=$(mktemp -d)
+    out_b=$(mktemp -d)
+    trap 'rm -rf "$out_a" "$out_b"' EXIT
+    SOURCE_DATE_EPOCH={{ source_date_epoch }} uv build --out-dir "$out_a"
+    SOURCE_DATE_EPOCH={{ source_date_epoch }} uv build --out-dir "$out_b"
+    digests=$(cd "$out_a" && shasum -a 256 -- *.whl *.tar.gz)
+    if ! (cd "$out_b" && shasum -a 256 --check --strict <<< "$digests"); then
+        echo "artifact digests differ between runs — build is not reproducible" >&2
+        exit 1
+    fi
 
 # Clean build artifacts
 clean:
