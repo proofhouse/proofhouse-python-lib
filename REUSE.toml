@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Authors of Proofhouse
+
+version = 1
+
+# Licensing for files that cannot or should not carry an inline SPDX
+# header: JSON and the uv lockfile have no comment syntax to put one
+# in, and the remaining configs and docs stay header-free so their
+# first lines keep doing their jobs (shebang-like directives, YAML
+# document markers, tool-parsed preambles). Python sources are
+# deliberately absent from every path list below — they carry inline
+# headers, and leaving them uncovered here means `reuse lint` fails
+# the moment a new .py file ships without one. That is the whole
+# header gate: the ruff CPY rules are switched off in pyproject.toml
+# in deference to it.
+
+[[annotations]]
+path = [
+    ".cspell-words.txt",
+    ".cspell.jsonc",
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    ".python-version",
+    ".rumdl.toml",
+    ".vale.ini",
+    ".yamllint.yaml",
+    ".yamllintignore",
+    "AGENTS.md",
+    "Brewfile",
+    "CLAUDE.md",
+    "Justfile",
+    "biome.json",
+    "cog.toml",
+    "pyproject.toml",
+    "uv.lock",
+]
+SPDX-FileCopyrightText = "Authors of Proofhouse"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Repository automation: workflows, CODEOWNERS, linter and Renovate
+# config under .github/, plus the agent worktree rules. Globs, so new
+# files in these trees are covered as they land.
+[[annotations]]
+path = [".github/**", ".claude/**"]
+SPDX-FileCopyrightText = "Authors of Proofhouse"
+SPDX-License-Identifier = "Apache-2.0"
+
+# The project-authored Vale style rules and vocabulary. Synced
+# third-party style packages live under gitignored paths and never
+# reach the linter, which only walks tracked files.
+[[annotations]]
+path = [".vale/**"]
+SPDX-FileCopyrightText = "Authors of Proofhouse"
+SPDX-License-Identifier = "Apache-2.0"
