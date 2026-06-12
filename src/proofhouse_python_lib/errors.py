@@ -9,7 +9,7 @@ class ExpressionError(Exception):
 
 
 class LexError(ExpressionError):
-    """Raised when the lexer meets a character that cannot start a token."""
+    """Raised when the lexer meets a character that can't start a token."""
 
     def __init__(self, char: str, offset: int) -> None:
         super().__init__(f"unexpected character {char!r} at offset {offset}")

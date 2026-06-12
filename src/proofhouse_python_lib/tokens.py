@@ -21,7 +21,7 @@ class TokenKind(Enum):
 
 @dataclass(frozen=True, slots=True)
 class Token:
-    """One lexed token: its kind, source text, and offset into the input."""
+    """One token from the lexer, pairing the matched text with its kind and offset."""
 
     kind: TokenKind
     lexeme: str
