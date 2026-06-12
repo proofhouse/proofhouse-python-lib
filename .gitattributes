@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+
+# Generated files — exclude from diff context.
+*.lock -diff
