@@ -1,0 +1,30 @@
+---
+# Validate `.github/CODEOWNERS` on every pull request, so a broken rule
+# fails review instead of quietly sending reviews to the wrong owners
+# once it lands on `main`. Delegates to the org-shared reusable workflow
+# in proofhouse/github-actions, which checks out this repo and runs the
+# same two checks against the caller's tree and context: GitHub's
+# `codeowners/errors` validator for owners and syntax, and a tree walk
+# that confirms every rule pattern still matches a tracked path. The
+# `'**'` path filter runs the workflow on every PR, so a deletion
+# anywhere re-triggers the gate and it can be required without skipping.
+# Pinned by commit SHA; the trailing tag comment marks the matching
+# release for Renovate.
+
+name: lint-codeowners
+
+on:
+  pull_request:
+    paths:
+      - .github/CODEOWNERS
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  lint-codeowners:
+    permissions:
+      contents: read
+    # yamllint disable-line rule:line-length
+    uses: proofhouse/github-actions/.github/workflows/lint-codeowners.yml@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0

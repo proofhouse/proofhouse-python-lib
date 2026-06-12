@@ -1,0 +1,28 @@
+---
+# Lint every workflow under `.github/workflows/` via actionlint. The
+# job runs on every PR that touches a workflow file and on every push
+# to `main`, so the lint gate guards both ends of the integration
+# path. Delegates to the org-shared reusable workflow in
+# proofhouse/github-actions, which checks out this repo and runs the
+# digest-pinned actionlint image, so this repo's .github/actionlint.yaml
+# still applies. Pinned by commit SHA; the trailing tag comment marks
+# the matching release for Renovate.
+
+name: lint-workflows
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/**']
+  pull_request:
+    paths: ['.github/workflows/**']
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    permissions:
+      contents: read
+    # yamllint disable-line rule:line-length
+    uses: proofhouse/github-actions/.github/workflows/lint-workflows.yml@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
