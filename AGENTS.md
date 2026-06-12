@@ -17,3 +17,7 @@ The prek commit-msg hook on `.git/COMMIT_EDITMSG` stays the real gate. `COMMIT_A
 ## Coverage pragmas
 
 The branch-coverage gate holds at 100%, so an unreached arm marks a hole in the suite rather than a reason to lower the bar. Closing that hole almost always wants a test that drives the arm. The exhaustiveness sentinels at the foot of each `match` over the AST form the one standing exception, and the `exclude_also` patterns in `[tool.coverage.report]` already account for them. Reach for an inline `# pragma: no cover` only when a line truly can't run under test and no standing pattern fits, and pair it with an adjacent comment that names what holds the line unreachable. Reviewers reject a bare pragma carrying no such defense, the same way they reject an undocumented lint suppression.
+
+## Prose lint output
+
+When fixing vale findings, run `vale --output=proofhouse-agent.tmpl <paths>` instead of the default output. The template, synced from the shared proofhouse style package, prints one self-contained line per finding (location, severity, rule, the exact matched text, and the replacement parameter when the rule defines one) plus a totals line, so you can apply fixes without follow-up searching. Empty output means a clean run, and the exit code carries the result.
