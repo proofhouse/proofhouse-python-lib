@@ -56,3 +56,10 @@ clean:
 # Run tests
 test *args:
     uv run pytest "$@"
+
+# --- Dependencies ---
+
+# Check that uv.lock is in sync with pyproject.toml. CI runs this on
+# every PR; contributors run `uv lock` and commit the result.
+lock-check:
+    uv lock --check
