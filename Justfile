@@ -111,7 +111,7 @@ fix-markdown *args:
 # Aggregator over the Python source gates. CI's lint job invokes only
 # this recipe, so wiring up a new gate means appending one dependency
 # here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`.
@@ -131,17 +131,23 @@ lint-ruff *args:
 lint-types *args:
     uv run pyrefly check {{ args }}
 
+# Score every function's cognitive complexity with complexipy; any
+# score above the ceiling fails the run. Scope and ceiling come from
+# [tool.complexipy] in pyproject.toml.
+lint-complexity:
+    uv run complexipy
+
 # Lint prose in Markdown files and source comments via vale. Glob
 # excludes the LICENSE (canonical Apache 2.0 text), the auto-generated
 # changelog, vale's own style packages, scratch dirs, the gitignored
 # agent worktrees under .claude/worktrees/ (whose nested virtualenvs
 # vale would otherwise crawl), the COMMIT_AGENTMSG draft (the
 # `lint-commit-msg` recipe owns that one under the stricter commit
-# scope), the virtualenv, build output, and the pytest cache (pytest
-# drops a README.md in there); the per-file-type rules in .vale.ini
-# decide what else gets inspected.
+# scope), the virtualenv, build output, and the pytest and complexipy
+# caches (both drop a README.md in there); the per-file-type rules in
+# .vale.ini decide what else gets inspected.
 lint-prose *args:
-    vale --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*}' {{ if args == "" { "." } else { args } }}
+    vale --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*,.complexipy_cache/*}' {{ if args == "" { "." } else { args } }}
 
 # Check spelling across the tree against the project dictionary at
 # .cspell-words.txt. cspell ignores binaries, generated files, the

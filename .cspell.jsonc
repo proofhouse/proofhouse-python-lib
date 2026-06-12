@@ -4,6 +4,7 @@
     "**/*.d.ts",
     "**/*.log",
     ".claude/worktrees/**/*",
+    ".complexipy_cache/**/*",
     ".pytest_cache/**/*",
     ".rumdl_cache/**/*",
     ".vale/**/*",

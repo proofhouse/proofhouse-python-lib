@@ -8,17 +8,35 @@ license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = []
 
+# The test group exists so the CI test matrix can sync it on its own,
+# leaving the lint tools out. complexipy publishes no free-threaded
+# wheels and its sdist will not link against 3.14t on Windows; the
+# matrix slots never run lint tooling, so they skip installing it.
 [dependency-groups]
 dev = [
+    { include-group = "test" },
+    "complexipy>=5.5.0",
     "pyrefly>=1.0.0",
+    "ruff>=0.15.17",
+]
+test = [
     "pytest>=9.0.3",
     "pytest-mock>=3.15.1",
-    "ruff>=0.15.17",
 ]
 
 [build-system]
 requires = ["uv_build>=0.11.21,<0.12.0"]
 build-backend = "uv_build"
+
+[tool.complexipy]
+# Scope and ceiling live in config, not recipe flags, so an editor
+# plugin, the pre-commit hook, and a bare `complexipy` all measure
+# the same tree under the same limit as CI.
+paths = ["src", "tests"]
+# Matches the gocognit ceiling in the Go twin and Sonar's default.
+# complexipy ships the same default today; pinning it here keeps an
+# upstream default change from moving the gate without a diff.
+max-complexity-allowed = 15
 
 [tool.pytest]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]

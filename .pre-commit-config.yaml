@@ -106,6 +106,16 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # In the Go twin the cognitive complexity ceiling rides inside
+      # the lint hook's analyzer set; complexipy stands alone here, so
+      # it gets a dedicated hook at the same stages.
+      - id: complexipy
+        name: complexipy check
+        entry: just lint-complexity
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched
