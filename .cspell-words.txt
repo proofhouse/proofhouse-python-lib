@@ -17,11 +17,16 @@ goheader
 hardwrap
 importlinter
 matrixed
+orbstack
+osxkeychain
 pipefail
 prek
 proofhouse
 pylint
+rhysd
 rumdl
+sandboxed
+shellcheck
 tbhb
 testpaths
 Tricolon
