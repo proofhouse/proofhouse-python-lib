@@ -148,6 +148,17 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # License headers ride the Go twin's lint hook as the goheader
+      # analyzer; reuse holds that slot here and, as a separate
+      # binary, gets its own hook. No types filter — the gate spans
+      # every tracked file, so a commit touching no Python at all can
+      # still break it (a new config file absent from REUSE.toml).
+      - id: reuse-lint
+        name: reuse SPDX compliance check
+        entry: just lint-reuse
+        language: system
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched

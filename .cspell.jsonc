@@ -13,6 +13,7 @@
     "coverage.xml",
     "dist/**/*",
     "LICENSE",
+    "LICENSES/**/*",
     "node_modules/**/*",
     "tmp/**/*",
     "uv.lock"

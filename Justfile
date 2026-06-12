@@ -111,7 +111,7 @@ fix-markdown *args:
 # Aggregator over the Python source gates. CI's lint job invokes only
 # this recipe, so wiring up a new gate means appending one dependency
 # here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports lint-reuse
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`.
@@ -152,6 +152,17 @@ lint-deadcode:
 # scope.
 lint-dup-code:
     uv run pylint src tests
+
+# Check the tree against the REUSE specification: every tracked file
+# must name Apache-2.0 and its copyright holder, either inline (.py
+# sources keep their two-line SPDX headers) or through the bulk
+# annotations in REUSE.toml (configs, the lockfile, formats with no
+# comment syntax). Serial on purpose: at a few dozen files the
+# default worker pool only adds startup cost, and the serial path
+# also works in locked-down dev sandboxes that refuse the pool's
+# named semaphores.
+lint-reuse:
+    uv run reuse --no-multiprocessing lint
 
 # Verify the package's import graph against the [tool.importlinter]
 # contracts in pyproject.toml: the expression pipeline stages stay
