@@ -95,6 +95,17 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Same Justfile-delegation pattern as the ruff pair above. In the
+      # Go twin type errors stop a commit because the compiler's checks
+      # ride inside its lint hook; pyrefly is that gate here, so it
+      # gets its own hook on the same terms.
+      - id: pyrefly-check
+        name: pyrefly check
+        entry: just lint-types
+        language: system
+        types: [python]
+        pass_filenames: false
+
       - id: biome-check
         name: biome check
         entry: biome check --write --files-ignore-unknown=true --no-errors-on-unmatched
