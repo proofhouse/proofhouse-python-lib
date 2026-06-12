@@ -3,11 +3,13 @@ AGENTMSG
 autostash
 cocogitto
 commitlint
+complexipy
 docstring
 docstrings
 dunder
 EDITMSG
 excinfo
+gocognit
 hardwrap
 matrixed
 pipefail

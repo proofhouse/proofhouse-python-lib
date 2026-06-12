@@ -147,3 +147,5 @@ CPython
 [Mm]atrixed
 [Dd]ocstrings?
 pyrefly
+complexipy
+cyclomatic
