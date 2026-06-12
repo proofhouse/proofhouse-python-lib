@@ -1,0 +1,26 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  // This repo's Renovate config is mostly shared org policy, pulled in from
+  // the two presets in proofhouse/github-actions:
+  //
+  //   - renovate-global-config.json5 via globalExtends — the global-only
+  //     identity, rate limits, and requireConfig (resolved at global-config
+  //     time, the only scope where those options take effect).
+  //   - renovate-config.json5 via extends — the repository-level rules plus
+  //     the Justfile and Vale custom managers shared by every repo.
+  //
+  // No language specifics stay inline below: Renovate's pep621 manager
+  // picks up pyproject.toml on its own and refreshes uv.lock as the update
+  // artifact, so the only local option is the repository scope.
+  globalExtends: [
+    "github>proofhouse/github-actions//.github/renovate-global-config.json5",
+  ],
+  extends: [
+    "github>proofhouse/github-actions//.github/renovate-config.json5",
+  ],
+
+  // Single-repo scope. The one global-only option that can't move to the
+  // shared preset — it differs per repo.
+  repositories: ["proofhouse/proofhouse-python-lib"],
+}
