@@ -1,0 +1,63 @@
+---
+# The blocking half of the mutation setup. mutation-nightly.yml mutates the
+# whole library and only logs survivors; this one turns a pull request red
+# when a mutant outlives the surface that branch edited. tools/mutscope.py
+# takes the diff against the base branch, keeps the changed library modules
+# and whatever imports them, and writes cosmic-ray a config aimed at that set
+# alone; the recipe then insists every one of those mutants dies. The
+# narrowing is the whole trick — replaying the suite per mutant across the
+# entire package, the cost the nightly absorbs, is far too slow and too
+# jittery to sit in front of a merge, while a few changed modules finish
+# quickly and kill the same way every run.
+#
+# Pull request only: a diff needs a base ref, which a push to main has none
+# of. A branch that touches no library source resolves to an empty scope and
+# clears the gate as a no-op.
+
+name: mutation-diff
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mutate-diff:
+    name: mutate-diff
+    runs-on: ubuntu-24.04
+    # Even a small diff reruns the suite once per mutant, so the ceiling
+    # rides on the count of changed-plus-dependent modules. The library is
+    # still compact; leave the budget generous and trim it as the surface
+    # fills out.
+    timeout-minutes: 30
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      # mutscope diffs HEAD against the base branch, so the checkout needs
+      # the full history the default shallow clone leaves behind.
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      # A PR checkout leaves the base branch with no tracking ref, so pull it
+      # down before mutscope resolves origin/<base> as the diff base.
+      - name: Run diff-scoped mutation gate
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          just mutate-diff "origin/${{ github.base_ref }}"
