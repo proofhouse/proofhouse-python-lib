@@ -112,7 +112,7 @@ build-repro-check:
 
 # Clean build artifacts
 clean:
-    rm -rf dist .pytest_cache htmlcov coverage.xml
+    rm -rf dist .pytest_cache .hypothesis htmlcov coverage.xml
     rm -f .coverage .coverage.*
 
 # --- Format ---
@@ -285,7 +285,11 @@ lint-commit-msg:
 
 # --- Test ---
 
-# Run tests
+# Run tests. The property suite under tests/property loads hypothesis's
+# `dev` profile by default (50 examples, a fast inner loop); set
+# HYPOTHESIS_PROFILE=ci for the 500-example deadline-free search CI runs.
+# A failing property replays its falsifying example from the local
+# .hypothesis database on the next run, so the case sticks until fixed.
 test *args:
     uv run pytest "$@"
 

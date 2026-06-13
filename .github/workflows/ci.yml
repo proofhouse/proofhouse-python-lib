@@ -136,13 +136,31 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --no-default-groups --group test
 
+      # Hypothesis keeps the seeds of failing examples in this directory
+      # and replays them first on the next run, so a counterexample one
+      # CI run finds becomes a standing regression the following runs
+      # reproduce. The key folds in the slot so each os/python pair keeps
+      # its own database; restore-keys let a fresh key warm-start from the
+      # last run's seeds rather than an empty store.
+      - name: Cache the Hypothesis example database
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .hypothesis/examples
+          key: hypothesis-${{ matrix.os }}-${{ matrix.python }}-${{ github.run_id }}
+          restore-keys: |
+            hypothesis-${{ matrix.os }}-${{ matrix.python }}-
+
       # UV_NO_SYNC stops the `uv run` inside the recipes from restoring
       # the default dev group on top of the test-only environment synced
-      # above. cover-slot runs the suite under coverage, writes this
-      # slot's data to .coverage.<slot>, and renders its Cobertura.
+      # above. HYPOTHESIS_PROFILE picks the wider 500-example profile the
+      # property conftest registers; the deadline-free search is why CI
+      # runs it where a quick local pass stays on the 50-example default.
+      # cover-slot runs the suite under coverage, writes this slot's data
+      # to .coverage.<slot>, and renders its Cobertura.
       - name: Run tests with coverage
         env:
           UV_NO_SYNC: "1"
+          HYPOTHESIS_PROFILE: ci
         run: just cover-slot "${{ matrix.os }}-${{ matrix.python }}"
 
       # Publish this slot's report under a per-slot label so each

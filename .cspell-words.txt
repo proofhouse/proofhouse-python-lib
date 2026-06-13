@@ -4,6 +4,7 @@ autostash
 cocogitto
 commitlint
 complexipy
+conftest
 deadcode
 depguard
 docstring

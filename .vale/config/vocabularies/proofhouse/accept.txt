@@ -136,7 +136,7 @@ basename
 falsy
 variadic
 CLIs
-devs
+[Dd]evs?
 CodeQL
 autobuild
 uv
