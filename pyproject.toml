@@ -45,25 +45,30 @@ max-complexity-allowed = 15
 [tool.importlinter]
 root_package = "proofhouse_python_lib"
 
-# The expression pipeline flows one way: parser consumes the lexer's
-# tokens and builds AST nodes, the lexer produces tokens, and every
-# stage may raise from errors. An upward import (tokens reaching into
-# the parser, say) would close that flow into a cycle, so each stage
-# may only see the stages beneath it.
+# The expression pipeline flows one way: the evaluator reduces a parsed
+# tree to a value, the parser consumes the lexer's tokens and builds AST
+# nodes, the lexer produces tokens, and every stage may raise from
+# errors. An upward import (tokens reaching into the parser, say) would
+# close that flow into a cycle, so each stage may only see the stages
+# beneath it. The evaluator caps the stack because it depends on the
+# parser to turn text into the trees it walks.
 [[tool.importlinter.contracts]]
 name = "expression pipeline stages stay ordered"
 type = "layers"
 containers = ["proofhouse_python_lib"]
-layers = ["parser", "ast", "lexer", "tokens", "errors"]
+layers = ["evaluator", "parser", "ast", "lexer", "tokens", "errors"]
 
 # The testing helpers ship in the wheel for downstream test suites.
 # Were a pipeline stage to import them, a test-only projection like
 # kinds() would become part of the engine's runtime surface, so every
-# stage is barred from the subpackage outright.
+# stage is barred from the subpackage outright. The evaluator joins
+# that list as the newest stage, since its result is exactly the kind
+# of value a downstream suite would feed those helpers.
 [[tool.importlinter.contracts]]
 name = "pipeline stages stay clear of testing helpers"
 type = "forbidden"
 source_modules = [
+    "proofhouse_python_lib.evaluator",
     "proofhouse_python_lib.parser",
     "proofhouse_python_lib.ast",
     "proofhouse_python_lib.lexer",
