@@ -78,6 +78,33 @@ jobs:
       - name: Check lock drift
         run: just lock-check
 
+  # Blocks the merge when the locked dependency closure carries a known
+  # advisory. `just audit` exports the committed lock to a pylock and
+  # runs pip-audit over it, so this gate reads the same versions a
+  # consumer would resolve. Renovate's bumps clear it on their own PRs.
+  audit:
+    name: audit
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Audit the locked dependency closure
+        run: just audit
+
   test:
     name: "test (${{ matrix.os }}, ${{ matrix.python }})"
     runs-on: ${{ matrix.os }}

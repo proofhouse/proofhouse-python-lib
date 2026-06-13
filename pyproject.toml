@@ -18,6 +18,7 @@ dev = [
     "complexipy>=5.5.0",
     "diff-cover>=10.3.0",
     "import-linter>=2.11",
+    "pip-audit>=2.10.1",
     "pylint>=4.0.5",
     "pyrefly>=1.0.0",
     "reuse[charset-normalizer]>=6.2.0",
