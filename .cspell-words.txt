@@ -20,6 +20,7 @@ gosec
 grimp
 hardwrap
 htmlcov
+hypofuzz
 importlinter
 matrixed
 mutscope

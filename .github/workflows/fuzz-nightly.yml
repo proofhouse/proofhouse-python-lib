@@ -1,0 +1,81 @@
+---
+# Scheduled fuzzing sweep over the property suite. HypoFuzz takes the
+# same hypothesis-backed properties the example tests already check —
+# parse/format round-trips, evaluator totality, the lexer's coverage of
+# its alphabet — and searches them under coverage guidance, steering new
+# inputs toward unexercised branches in the precedence climber, the
+# Fraction arithmetic, and the formatter's bracketing. That search runs
+# longer here than a contributor would wait on, so the corpus deepens
+# off the critical path. The job calls the same `just fuzz` recipe used
+# locally and only raises FUZZ_TIME, which leaves tools/fuzz.py the sole
+# account of what gets fuzzed and how the verdict is read.
+#
+# A falsifying input HypoFuzz uncovers lands in the .hypothesis database
+# and turns the recipe's replay red; the database tree uploads on failure
+# so the example outlives the runner and replays from a local checkout.
+
+name: fuzz-nightly
+
+on:
+  schedule:
+    # 03:23 UTC nightly. Off-peak and away from the top of the hour, on a
+    # minute no other schedule here claims (mutation at 04:37, the daily
+    # security scan at 06:19, the weekly CodeQL pass at 04:43 on Sundays).
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+    inputs:
+      fuzz_time:
+        description: "Fuzz budget (seconds, or a 30s/5m/1h duration)"
+        type: string
+        default: "5m"
+
+permissions:
+  contents: read
+
+concurrency:
+  # Keep scheduled and manual runs in a single line so an on-demand kick
+  # never races the cron over the shared example database. A run already
+  # going finishes instead of being cut short, since a truncated search
+  # banks less corpus for the same compute.
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  fuzz:
+    name: fuzz
+    runs-on: ubuntu-24.04
+    # The suite fuzzes concurrently across the runner's cores for the
+    # budget, then replays once. The 5m default plus teardown and replay
+    # fits well inside this ceiling; widen it if a dispatch raises the
+    # budget past it.
+    timeout-minutes: 20
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Run fuzz sweep
+        env:
+          # A scheduled run carries no inputs, so default to the dispatch value.
+          FUZZ_TIME: ${{ github.event.inputs.fuzz_time || '5m' }}
+        run: just fuzz
+
+      - name: Upload falsifying examples
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: hypothesis-examples
+          path: ".hypothesis/**"
+          if-no-files-found: ignore

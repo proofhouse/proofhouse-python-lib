@@ -23,6 +23,10 @@ dev = [
     # reaches for its import graph by name, so the dependency earns its own
     # line instead of leaning on a contract gate to keep supplying it.
     "grimp>=3.14",
+    # hypofuzz is AGPL-3.0, so it stays a developer tool: it drives the
+    # existing hypothesis property tests under coverage-guided search and is
+    # never imported by the Apache-2.0 package or carried into a wheel.
+    "hypofuzz>=25.11.1",
     "import-linter>=2.11",
     "pip-audit>=2.10.1",
     "pylint>=4.0.5",
