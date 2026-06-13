@@ -22,3 +22,15 @@ class ParseError(ExpressionError):
     def __init__(self, expected: str, found: str, offset: int) -> None:
         super().__init__(f"expected {expected}, found {found} at offset {offset}")
         self.offset: int = offset
+
+
+class DivisionByZeroError(ExpressionError):
+    """Raised when evaluation divides by a zero divisor.
+
+    The AST carries no source positions, so this error carries none
+    either: it names a structural fact about the tree, not a span of
+    input text the way LexError and ParseError do.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("division by zero")
