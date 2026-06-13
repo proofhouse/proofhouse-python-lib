@@ -66,6 +66,8 @@ def test_parse_builds_expected_nodes(text: str, expected: Expr) -> None:
         pytest.param("9-5-2", "((9 - 5) - 2)", id="minus-left-associative"),
         pytest.param("8/4/2", "((8 / 4) / 2)", id="slash-left-associative"),
         pytest.param("2*3*4", "((2 * 3) * 4)", id="star-left-associative"),
+        pytest.param("2*3/4", "((2 * 3) / 4)", id="star-then-slash-left-associative"),
+        pytest.param("8/2*3", "((8 / 2) * 3)", id="slash-then-star-left-associative"),
         pytest.param("(1+2)*3", "((1 + 2) * 3)", id="parens-override-precedence"),
         pytest.param("2*(3-(4+5))", "(2 * (3 - (4 + 5)))", id="nested-parens"),
         pytest.param("((7))", "7", id="redundant-parens"),

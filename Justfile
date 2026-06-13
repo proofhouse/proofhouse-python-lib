@@ -377,6 +377,66 @@ cover-slot slot="local":
     uv run pytest --cov --cov-branch --cov-fail-under=0 -n auto
     uv run coverage xml -o coverage.xml
 
+# --- Mutation ---
+
+# Wall-clock seconds cosmic-ray allows one mutated suite run before it
+# files the mutant incompetent instead of survived. cosmic-ray.toml
+# carries the same default; both recipes here splice this value over it,
+# so a contributor on a slow machine or a busier-than-usual runner widens
+# the ceiling once through MUTATION_TIMEOUT rather than editing the config.
+# Unlike the Go side's coefficient that scales a measured baseline, this
+# is the raw budget cosmic-ray expects.
+mutation_timeout := env("MUTATION_TIMEOUT", "30.0")
+
+# Mutate a single module for a tight edit-rerun loop. Point it at the file
+# you just touched — the precedence table in parser.py, the Fraction
+# arithmetic in evaluator.py, the bracketing rules in formatter.py — and
+# cosmic-ray rewrites one construct at a time, replays the suite, and
+# files each mutant KILLED, SURVIVED, or incompetent. The SURVIVED lines
+# are where the code branches but no assertion reads the difference. It
+# clones cosmic-ray.toml into a scratch config with the path and budget
+# overridden, runs the pragma filter so the equivalent mutants flagged in
+# the source drop out before they cost a run, then prints the surviving
+# set and the rate. The whole-package form below feeds the nightly.
+[script]
+mutate path="src/proofhouse_python_lib":
+    mkdir -p .cosmic-ray
+    cfg=.cosmic-ray/scoped.toml
+    session=.cosmic-ray/scoped.sqlite
+    sed -e 's|^module-path = .*|module-path = "{{ path }}"|' \
+        -e 's|^timeout = .*|timeout = {{ mutation_timeout }}|' \
+        cosmic-ray.toml > "$cfg"
+    rm -f "$session"
+    uv run cosmic-ray init "$cfg" "$session"
+    uv run cr-filter-pragma "$session" >/dev/null
+    uv run cosmic-ray exec "$cfg" "$session"
+    uv run cr-report --surviving-only "$session"
+    uv run cr-rate "$session"
+
+# Sweep every shipped module. The scheduled workflow calls this and so can
+# anyone vetting a release-bound change, which is why it lives in one
+# recipe rather than being inlined into the YAML — the fuzz pair keeps the
+# same split. module-path and the equivalent-mutant exclusions ride along
+# from cosmic-ray.toml; only the budget gets overridden. The pragma filter
+# retires the type-alias mutants the source marks before exec spends time
+# on them. This recipe sets no passing bar: it lists what lived and exits
+# zero whatever the rate, leaving the score that can block a merge to the
+# diff-scoped check. Read the surviving block to find the next assertion
+# worth writing.
+[script]
+mutate-all:
+    mkdir -p .cosmic-ray
+    cfg=.cosmic-ray/all.toml
+    session=.cosmic-ray/all.sqlite
+    sed -e 's|^timeout = .*|timeout = {{ mutation_timeout }}|' \
+        cosmic-ray.toml > "$cfg"
+    rm -f "$session"
+    uv run cosmic-ray init "$cfg" "$session"
+    uv run cr-filter-pragma "$session" >/dev/null
+    uv run cosmic-ray exec "$cfg" "$session"
+    uv run cr-report --surviving-only "$session"
+    uv run cr-rate "$session"
+
 # --- Security ---
 
 # Walk the working tree and every commit in history for secrets that

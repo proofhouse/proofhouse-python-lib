@@ -1,0 +1,42 @@
+[cosmic-ray]
+# The mutation target is the import package. cosmic-ray descends the
+# directory and rewrites every module it finds, so pointing at the
+# package root keeps `mutate-all` complete on its own: a parser or
+# formatter file added later joins the sweep without anyone editing
+# this config.
+module-path = "src/proofhouse_python_lib"
+
+# Per-mutant ceiling in wall-clock seconds — an absolute budget, not a
+# baseline multiplier. cosmic-ray aborts a mutated run at this mark and
+# files it as incompetent rather than counting it as a survivor, so the
+# number has to clear the suite's real runtime by a wide margin. The
+# unit suite returns in a fraction of a second, leaving 30 seconds far
+# more than a well-behaved mutant needs while still cutting off one that
+# steers the evaluator into a runaway recursion. A slow laptop or a
+# loaded runner widens it through MUTATION_TIMEOUT in the recipes.
+timeout = 30.0
+
+excluded-modules = [
+    # The testing subpackage ships in the wheel for downstream property
+    # suites, but its body is generator plumbing: hypothesis strategies
+    # that draw tokens and expression trees. Their one mutable surface is
+    # a draw bound such as a recursion depth; an assertion fastening that
+    # would grade hypothesis's own sampling rather than this library's
+    # arithmetic. The behavioral targets stay where the value is — the
+    # precedence-climbing parser, the exact-rational evaluator, and the
+    # minimal-parenthesis formatter.
+    "src/proofhouse_python_lib/testing/*.py",
+]
+
+# A stripped pytest run: no coverage plugin, no xdist. cosmic-ray reruns
+# this command once for every mutant, so each saved millisecond
+# multiplies across the work order. `-x` stops at the first failing
+# assertion, the whole signal a kill carries, and leaving --cov off
+# spares a per-mutant coverage write the figure never reads.
+test-command = "uv run pytest -q -x"
+
+[cosmic-ray.distributor]
+# Mutate in-process on the local machine. The http distributor farms the
+# work order across a worker pool, overkill for a suite that finishes
+# before a pool would finish starting.
+name = "local"
