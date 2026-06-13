@@ -32,6 +32,7 @@ rhysd
 roundtrips
 rumdl
 sandboxed
+sarif
 shellcheck
 tbhb
 testpaths
