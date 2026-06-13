@@ -17,10 +17,12 @@ gocognit
 goheader
 golangci
 gosec
+grimp
 hardwrap
 htmlcov
 importlinter
 matrixed
+mutscope
 orbstack
 osxkeychain
 pipefail

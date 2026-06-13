@@ -19,6 +19,10 @@ dev = [
     "complexipy>=5.5.0",
     "cosmic-ray>=8.4.6",
     "diff-cover>=10.3.0",
+    # import-linter already drags grimp in, but the diff-mutation script
+    # reaches for its import graph by name, so the dependency earns its own
+    # line instead of leaning on a contract gate to keep supplying it.
+    "grimp>=3.14",
     "import-linter>=2.11",
     "pip-audit>=2.10.1",
     "pylint>=4.0.5",
@@ -193,7 +197,10 @@ testpaths = ["tests"]
 # severity, so a preset change upstream can never quietly relax the
 # gate.
 preset = "strict"
-project-includes = ["src", "tests"]
+# The mutscope helper under tools/ never ships, but it steers a merge
+# gate, so it answers to the same strict checker the engine does rather
+# than slipping past as an unchecked side script.
+project-includes = ["src", "tests", "tools"]
 
 [tool.pyrefly.errors]
 abstract-method-call = "error"
@@ -346,6 +353,18 @@ known-first-party = ["proofhouse_python_lib"]
     "PLR2004",
     # Test dirs are intentionally __init__-free under importlib mode.
     "INP001",
+]
+"tools/**" = [
+    # Dev scripts here run from the shell and are never imported, so the
+    # directory carries no __init__ (INP001), matching how tests sit.
+    "INP001",
+    # The script reports its scope and survivor tally over the standard
+    # streams; print is its way of talking back, not a leftover trace
+    # (T201).
+    "T201",
+    # An argv index compared against a small literal reads plainer in
+    # place than wrapped in a named constant (PLR2004).
+    "PLR2004",
 ]
 
 [tool.vulture]

@@ -437,6 +437,41 @@ mutate-all:
     uv run cr-report --surviving-only "$session"
     uv run cr-rate "$session"
 
+# Confine the sweep to what a branch could have broken, then refuse any
+# survivor on it. mutscope.py reads the diff from [base] to HEAD, takes the
+# changed library modules plus the ones that import them through the graph,
+# and emits a config pointed at just those files; cosmic-ray mutates that
+# slice alone. Where mutate-all reports and walks away, this recipe holds a
+# line: not one targeted mutant may live. Demanding a clean kill across the
+# whole package would be too slow and too jumpy to gate every merge, yet a
+# trimmed diff scope is small enough that zero survivors lands fast and
+# repeats run to run. The tally comes from a dump pass through mutscope, not
+# `cr-rate --fail-over 0`, because that option reads a zero threshold as
+# disabled and stays silent; an explicit count never rounds away a lone
+# survivor. With no source touched the scope empties, cosmic-ray finds
+# nothing to mutate, and the count rests at zero — the pass a prose-only or
+# tooling-only branch should get. The equivalents excused in the full sweep
+# travel along through cosmic-ray.toml, which mutscope reproduces field for
+# field.
+[script]
+mutate-diff base="origin/main":
+    mkdir -p .cosmic-ray
+    cfg=.cosmic-ray/diff.toml
+    session=.cosmic-ray/diff.sqlite
+    uv run python tools/mutscope.py "$cfg" "{{ base }}"
+    sed -i.bak -e 's|^timeout = .*|timeout = {{ mutation_timeout }}|' "$cfg"
+    rm -f "$cfg.bak" "$session"
+    uv run cosmic-ray init "$cfg" "$session"
+    uv run cr-filter-pragma "$session" >/dev/null
+    uv run cosmic-ray exec "$cfg" "$session"
+    uv run cr-report --surviving-only "$session"
+    uv run cr-rate "$session"
+    survivors=$(uv run cosmic-ray dump "$session" | uv run python tools/mutscope.py --count-survivors)
+    if [[ "$survivors" -ne 0 ]]; then
+        echo "mutate-diff: $survivors mutant(s) outlived the changed surface" >&2
+        exit 1
+    fi
+
 # --- Security ---
 
 # Walk the working tree and every commit in history for secrets that
