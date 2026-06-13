@@ -23,6 +23,7 @@ Justfile
 Brewfile
 mtime[s]?
 [Kk]eyless
+osv-scanner
 [Pp]rek
 [Pp]rereq
 [Rr]enovate
