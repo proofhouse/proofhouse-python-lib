@@ -290,6 +290,13 @@ lint-commit-msg:
 # HYPOTHESIS_PROFILE=ci for the 500-example deadline-free search CI runs.
 # A failing property replays its falsifying example from the local
 # .hypothesis database on the next run, so the case sticks until fixed.
+#
+# pytest-randomly shuffles the collection order every run and prints the
+# seed it chose; pin that seed to replay an order that exposed a leak —
+# `just test -p randomly --randomly-seed=12345`. Runs stay serial here so
+# the seed line and any failure read cleanly; pass `just test -n auto` to
+# fan the suite across cores via xdist, which is the shape CI's coverage
+# slots run under.
 test *args:
     uv run pytest "$@"
 
@@ -345,11 +352,13 @@ cover-combine:
 # the slot so the downstream job can combine every slot losslessly;
 # --cov-fail-under=0 hands the threshold off to that combined check,
 # since one slot need not carry the whole library on its own. CI passes
-# the os/python pair as the slot name.
+# the os/python pair as the slot name. `-n auto` spreads the run across
+# the slot's cores: pytest-cov sums each worker's tally back into the one
+# COVERAGE_FILE, so the slot's number stays whole under the split.
 [script]
 cover-slot slot="local":
     export COVERAGE_FILE=".coverage.{{ slot }}"
-    uv run pytest --cov --cov-branch --cov-fail-under=0
+    uv run pytest --cov --cov-branch --cov-fail-under=0 -n auto
     uv run coverage xml -o coverage.xml
 
 # --- Dependencies ---
