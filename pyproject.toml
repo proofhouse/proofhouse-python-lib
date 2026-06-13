@@ -178,13 +178,14 @@ exclude_also = [
     # A TYPE_CHECKING block exists for the type checker alone and never
     # executes at import time.
     "if TYPE_CHECKING:",
-    # assert_never guards a match arm pyrefly has already proven dead;
-    # were the suite to reach it, that would be a bug, not a tested path.
-    # Excluding the arm's `case _:` introducer drops both the line and
-    # the impossible edge into it; the assert_never body documents and
-    # type-checks the guarantee.
-    "case _:",
-    "assert_never\\(",
+    # A wildcard arm guarded by assert_never is one pyrefly has already
+    # proven dead; reaching it under test would be a bug, not a tested
+    # path. The match spans both lines, so it drops the `case _:`
+    # introducer and the impossible edge into it together with the
+    # assert_never body that documents and type-checks the guarantee.
+    # Tying the exclusion to the assert_never pairing keeps a future
+    # wildcard arm that does real work inside the coverage count.
+    "case _:\\n\\s*assert_never\\(",
     # The __main__ entry guard runs only when a module is executed as a
     # script, which the suite never does.
     "if __name__ == \"__main__\":",
