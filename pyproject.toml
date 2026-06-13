@@ -26,9 +26,12 @@ dev = [
 ]
 # pytest-cov belongs to the test group, not dev: the matrix syncs that
 # group alone, and each slot calls `just cover-slot` to record its own
-# coverage. diff-cover sits up in dev because the lone coverage job —
-# never a per-slot run — invokes it.
+# coverage. hypothesis rides here too: every slot collects the property
+# suite, so the generator has to be present wherever the suite runs.
+# diff-cover sits up in dev because the lone coverage job — never a
+# per-slot run — invokes it.
 test = [
+    "hypothesis>=6.155.2",
     "pytest>=9.0.3",
     "pytest-cov>=7.1.0",
     "pytest-mock>=3.15.1",
