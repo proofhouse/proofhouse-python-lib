@@ -29,6 +29,7 @@ path = [
     ".yamllintignore",
     "AGENTS.md",
     "Brewfile",
+    "CHANGELOG.md",
     "CLAUDE.md",
     "Justfile",
     "biome.json",
