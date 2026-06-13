@@ -23,9 +23,11 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    # Weekly, Sunday 04:43 UTC. A quiet slot away from the top of the
-    # hour, and distinct from the daily osv-scanner cron.
-    - cron: "43 4 * * 0"
+    # Weekly, Sunday 05:17 UTC. Off the top of the hour and clear of the
+    # daily osv-scanner cron, and a minute the twin's CodeQL run does not
+    # share, so the two repositories do not queue their weekly sweep into
+    # one slot.
+    - cron: "17 5 * * 0"
 
 permissions:
   contents: read
