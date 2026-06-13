@@ -472,6 +472,26 @@ mutate-diff base="origin/main":
         exit 1
     fi
 
+# --- Fuzzing ---
+
+# Search the property suite with HypoFuzz for a bounded stretch, then
+# fail if the search turned up a counterexample. Where the example-based
+# `just test` run draws a fixed number of cases per property, HypoFuzz
+# steers its inputs by the branches they reach, so it keeps probing the
+# precedence climber, the Fraction evaluator, and the formatter's
+# bracketing for the input no fixed draw stumbles onto. The budget comes
+# from FUZZ_TIME — a count of seconds or a 30s/5m/1h duration, the same
+# dial the Go twin's fuzz recipe reads — and defaults short for an
+# edit-rerun loop; the nightly hands in a longer one. tools/fuzz.py owns
+# the budget and the verdict: HypoFuzz has no time flag and stops on its
+# own only once every target has failed, so the script stops it on the
+# clock and then replays the suite under pytest, which reruns any saved
+# falsifying example from the .hypothesis database and exits non-zero on
+# a reproduction. Both the inner loop and the scheduled sweep call this
+# one recipe, the split the mutation pair above keeps too.
+fuzz:
+    uv run python tools/fuzz.py
+
 # --- Security ---
 
 # Walk the working tree and every commit in history for secrets that
