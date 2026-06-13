@@ -6,7 +6,13 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 
-type Expr = Number | UnaryOp | BinaryOp
+# The trailing marker tells cosmic-ray to leave this line alone. A
+# 695-style alias defers its body, so the union arms only ever feed a
+# type checker and never run unless code reaches for `Expr.__value__`,
+# which nothing does. Rewriting the `|` to any other operator changes no
+# behavior a test could catch, so the sweep would otherwise log two dozen
+# of these dead mutants nightly.
+type Expr = Number | UnaryOp | BinaryOp  # pragma: no mutate
 
 
 class UnaryOperator(Enum):

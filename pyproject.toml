@@ -17,6 +17,7 @@ dev = [
     { include-group = "test" },
     "bandit>=1.9.4",
     "complexipy>=5.5.0",
+    "cosmic-ray>=8.4.6",
     "diff-cover>=10.3.0",
     "import-linter>=2.11",
     "pip-audit>=2.10.1",

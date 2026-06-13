@@ -1,0 +1,72 @@
+---
+# Scheduled mutation sweep over the whole library. cosmic-ray edits one
+# construct at a time — a comparison in the precedence climber, an
+# arithmetic step in the Fraction evaluator, a bracketing rule in the
+# formatter — replays the suite against each edit, and tallies the
+# mutants the tests catch against the ones that slip through. Replaying
+# the suite per mutant is far too slow for a pull request, so the full
+# pass runs here on a clock; the bounded gate that blocks a merge is the
+# diff-scoped score check elsewhere. The job runs the same `just
+# mutate-all` a contributor runs by hand, changing only MUTATION_TIMEOUT,
+# which keeps the recipe and cosmic-ray.toml the lone account of what is
+# mutated and which equivalents are excluded.
+#
+# mutate-all exits zero at every rate, so a surviving mutant shows up in
+# the log without turning the run red. A reader walks the SURVIVED block
+# for the assertion a 100% branch figure never demanded.
+
+name: mutation-nightly
+
+on:
+  schedule:
+    # 04:37 UTC nightly. Off-peak and away from the top of the hour, on a
+    # minute of its own so it never queues behind the daily security scan
+    # (06:19) or the weekly CodeQL pass (04:43 on Sundays).
+    - cron: "37 4 * * *"
+  workflow_dispatch:
+    inputs:
+      mutation_timeout:
+        description: "Per-mutant test budget in seconds (cosmic-ray timeout)"
+        type: string
+        default: "30.0"
+
+permissions:
+  contents: read
+
+concurrency:
+  # Hold scheduled and dispatched runs in one line so a manual kick never
+  # collides with the cron. A run already underway finishes rather than
+  # being cut off, since an abandoned sweep buys nothing.
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  mutate:
+    name: mutate
+    runs-on: ubuntu-24.04
+    # Runtime grows with the mutant count times one suite run, since each
+    # mutant pays for a full replay. Today's set returns in minutes; the
+    # ceiling stays roomy and gets revisited as the module set grows.
+    timeout-minutes: 60
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up just
+        uses: proofhouse/github-actions/.github/actions/setup-just@c55eeb3115d95f6b8777538b4d6f49d48830e199 # v0.2.0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+      - name: Run mutation sweep
+        env:
+          # A scheduled run carries no inputs, so default to the dispatch value.
+          MUTATION_TIMEOUT: ${{ github.event.inputs.mutation_timeout || '30.0' }}
+        run: just mutate-all

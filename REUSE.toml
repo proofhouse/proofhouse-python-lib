@@ -33,6 +33,7 @@ path = [
     "Justfile",
     "biome.json",
     "cog.toml",
+    "cosmic-ray.toml",
     "pyproject.toml",
     "uv.lock",
 ]

@@ -4,6 +4,7 @@ __pycache__/
 dist/
 .pytest_cache/
 .complexipy_cache/
+.cosmic-ray/
 .hypothesis/
 .coverage
 .coverage.*

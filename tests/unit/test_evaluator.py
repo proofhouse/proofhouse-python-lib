@@ -39,6 +39,8 @@ from proofhouse_python_lib.evaluator import evaluate, evaluate_text
         pytest.param("---3", Fraction(-3), id="triple-unary-chain"),
         pytest.param("-(1+2)", Fraction(-3), id="unary-over-group"),
         pytest.param("2*-3", Fraction(-6), id="unary-after-star"),
+        pytest.param("6/-2", Fraction(-3), id="negative-divisor-divides"),
+        pytest.param("6/-3", Fraction(-2), id="negative-divisor-stays-exact"),
     ],
 )
 def test_evaluate_text_yields_exact_value(text: str, expected: Fraction) -> None:
