@@ -151,7 +151,7 @@ fix-markdown *args:
 # Aggregator over the Python source gates plus actionlint. CI's lint
 # job invokes only this recipe, so wiring up a new gate means appending
 # one dependency here instead of editing workflow YAML.
-lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports lint-reuse lint-workflows
+lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode lint-dup-code lint-imports lint-bandit lint-reuse lint-workflows
 
 # Run every linter that operates on the source tree. Aggregator over
 # the Python gates (via `lint-py-all`), prose (vale), spelling
@@ -220,6 +220,22 @@ lint-reuse:
 # bare command is import-linter's own CLI, not this recipe recursing.
 lint-imports:
     uv run lint-imports
+
+# Run bandit's static security analysis over the shipped source. ruff
+# already carries the S (flake8-bandit) rules under its `select = ["ALL"]`
+# set, but the two are not the same scanner: ruff reimplements a subset of
+# bandit's checks against its own syntax tree, while bandit keeps the full
+# upstream catalog — B-prefixed test IDs ruff has never ported — and
+# tracks new advisory patterns on its own release cadence. Running both
+# pairs the fast in-editor S diagnostics with the deeper second read that
+# notices what the port skipped. `-c pyproject.toml` loads the
+# [tool.bandit] table; `-r src` walks the package recursively. This is the
+# analog of the Go twin enabling gosec inside golangci-lint, so it rides
+# the same lint gate rather than a standalone job — fast enough to block a
+# merge from the lint set, where its non-zero exit on any finding stops
+# the branch.
+lint-bandit:
+    uv run bandit -c pyproject.toml -r src
 
 # Lint prose in Markdown files and source comments via vale. Glob
 # excludes the LICENSE (canonical Apache 2.0 text), the auto-generated
@@ -399,12 +415,14 @@ audit:
     uv export --frozen --format pylock.toml -o "$work/pylock.toml" --quiet
     uv run pip-audit "$work" --locked --cache-dir "$work/cache"
 
-# One entry point for the scanners that vet the supply chain rather than
-# the code's style. Secret scanning opens the list and the dependency
-# audit follows it; the static analysis pass will close the set once it
-# lands. Bundling them spares a contributor — or the workflow that calls
-# the gate in CI — from spelling out each scanner by hand.
-security: gitleaks audit
+# One entry point for the scanners that vet what the package hands its
+# importers: gitleaks reads the history for leaked secrets, audit weighs
+# the locked closure against the advisory feeds, and lint-bandit reads the
+# source for insecure constructs — three angles on the same shipped
+# artifact. lint-bandit also belongs to lint-py-all, so CI runs it from
+# the lint gate; here it rounds out the bundle a contributor reaches for
+# before a push, without retyping each scanner.
+security: gitleaks audit lint-bandit
 
 # --- Dependencies ---
 

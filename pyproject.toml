@@ -15,6 +15,7 @@ dependencies = []
 [dependency-groups]
 dev = [
     { include-group = "test" },
+    "bandit>=1.9.4",
     "complexipy>=5.5.0",
     "diff-cover>=10.3.0",
     "import-linter>=2.11",
@@ -47,6 +48,21 @@ test = [
 [build-system]
 requires = ["uv_build>=0.11.21,<0.12.0"]
 build-backend = "uv_build"
+
+[tool.bandit]
+# bandit reads this table when the recipe passes `-c pyproject.toml`.
+# The scan walks src alone (the recipe names it), and exclude_dirs keeps
+# the walk off the suite even if a future target ever points wider. Tests
+# are left out on purpose: they lean on assert (B101), seed throwaway
+# values, and otherwise trip rules that only read as smells outside
+# production code. Their security is not waived, though — ruff's S rules
+# still run over tests, minus the pytest-API carve-outs pinned in
+# [tool.ruff.lint.per-file-ignores], so the assertion idiom passes there
+# while real findings would not. No test IDs are skipped here: bandit's
+# whole catalog runs against the shipped code, since a published library
+# hands that code, and every advisory hiding in it, straight to its
+# importers.
+exclude_dirs = ["tests"]
 
 [tool.complexipy]
 # Scope and ceiling live in config, not recipe flags, so an editor
