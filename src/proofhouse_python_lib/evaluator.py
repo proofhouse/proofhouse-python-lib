@@ -28,7 +28,7 @@ def evaluate(expr: Expr) -> Fraction:
         case Number(value):
             return Fraction(value)
         case UnaryOp(_, operand):
-            # Negation, the one prefix operator, always flips the sign.
+            # Negation is the only prefix operator, so it always flips the sign.
             return -evaluate(operand)
         case BinaryOp(op, left, right):
             return _apply_binary(op, evaluate(left), evaluate(right))
