@@ -150,6 +150,18 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # The Go twin's lint hook carries gosec as its security analyzer;
+      # bandit takes that role here. ruff's S rules already screen the
+      # diff in-editor, so this hook adds bandit's wider catalog at the
+      # commit boundary — its own binary, its own hook, same stages as
+      # the rest.
+      - id: bandit
+        name: bandit security check
+        entry: just lint-bandit
+        language: system
+        types: [python]
+        pass_filenames: false
+
       # License headers ride the Go twin's lint hook as the goheader
       # analyzer; reuse holds that slot here and, as a separate
       # binary, gets its own hook. No types filter — the gate spans
