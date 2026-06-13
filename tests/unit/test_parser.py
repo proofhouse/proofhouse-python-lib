@@ -3,8 +3,6 @@
 
 """Tests for the expression parser."""
 
-from typing import Final
-
 import pytest
 
 from proofhouse_python_lib.ast import (
@@ -16,25 +14,25 @@ from proofhouse_python_lib.ast import (
     UnaryOperator,
 )
 from proofhouse_python_lib.errors import ExpressionError, ParseError
+from proofhouse_python_lib.formatter import binary_symbol
 from proofhouse_python_lib.parser import parse
-
-_BINARY_SYMBOLS: Final[dict[BinaryOperator, str]] = {
-    BinaryOperator.ADD: "+",
-    BinaryOperator.SUB: "-",
-    BinaryOperator.MUL: "*",
-    BinaryOperator.DIV: "/",
-}
 
 
 def render(expr: Expr) -> str:
-    """Render an AST fully parenthesized, so its shape shows in one string."""
+    """Render an AST fully parenthesized, so its shape shows in one string.
+
+    Unlike the library's canonical `format_expr`, every operator node
+    wears parentheses here, so precedence and associativity read straight
+    off the assertion string instead of hiding in whatever the
+    minimal-parens form chose to drop.
+    """
     match expr:
         case Number(value):
             return str(value)
         case UnaryOp(_, operand):
             return f"(-{render(operand)})"
         case BinaryOp(op, left, right):
-            return f"({render(left)} {_BINARY_SYMBOLS[op]} {render(right)})"
+            return f"({render(left)} {binary_symbol(op)} {render(right)})"
 
 
 @pytest.mark.parametrize(
