@@ -4,6 +4,10 @@ __pycache__/
 dist/
 .pytest_cache/
 .complexipy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 tmp/
 COMMIT_AGENTMSG
 

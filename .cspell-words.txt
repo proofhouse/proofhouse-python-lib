@@ -15,6 +15,7 @@ excinfo
 gocognit
 goheader
 hardwrap
+htmlcov
 importlinter
 matrixed
 orbstack

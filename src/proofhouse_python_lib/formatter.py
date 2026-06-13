@@ -3,7 +3,7 @@
 
 """Render an expression AST back to its canonical source form."""
 
-from typing import Final
+from typing import Final, assert_never
 
 from proofhouse_python_lib.ast import (
     BinaryOp,
@@ -68,6 +68,8 @@ def format_expr(expr: Expr) -> str:
             rendered_left = _format_child(left, precedence)
             rendered_right = _format_child(right, precedence + 1)
             return f"{rendered_left} {binary_symbol(op)} {rendered_right}"
+        case _:
+            assert_never(expr)
 
 
 def _format_child(child: Expr, min_precedence: int) -> str:
@@ -87,3 +89,5 @@ def _precedence(expr: Expr) -> int:
             if op in (BinaryOperator.MUL, BinaryOperator.DIV):
                 return _MULTIPLICATIVE
             return _ADDITIVE
+        case _:
+            assert_never(expr)
