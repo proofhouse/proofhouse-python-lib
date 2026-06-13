@@ -25,6 +25,7 @@ pipefail
 prek
 proofhouse
 pylint
+pylock
 rhysd
 roundtrips
 rumdl

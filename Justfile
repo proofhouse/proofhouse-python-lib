@@ -377,12 +377,34 @@ cover-slot slot="local":
 gitleaks:
     gitleaks git --verbose .
 
+# Audit the resolved dependency closure against the OSV and PyPI
+# advisory feeds. The subject is the lock, not the live `.venv`: pip-audit
+# learns the closure from a PEP 751 pylock.toml that `uv export --frozen`
+# renders straight from the committed uv.lock, so the scan covers exactly
+# the transitive set a `uv sync` would install — every pinned version,
+# not just the handful named in pyproject. Auditing the interpreter's
+# current site-packages instead would let a stale or hand-patched
+# environment drift away from what ships. The export lands in a scratch
+# directory that the trap clears on exit; `--locked` tells pip-audit to
+# read the pylock there rather than re-resolve. A reachable advisory
+# exits non-zero, which is why this rides in the CI gate set and not only
+# the Security tab. pip-audit's HTTP cache for the advisory feeds lands in
+# the same scratch directory, so the run leaves nothing behind and never
+# reaches for a per-user cache path a sandboxed shell may be barred from
+# creating.
+[script]
+audit:
+    work=$(mktemp -d)
+    trap 'rm -rf "$work"' EXIT
+    uv export --frozen --format pylock.toml -o "$work/pylock.toml" --quiet
+    uv run pip-audit "$work" --locked --cache-dir "$work/cache"
+
 # One entry point for the scanners that vet the supply chain rather than
-# the code's style. It opens with secret scanning today; the dependency
-# audit and the SAST pass slot in beside it as they arrive, leaving a
-# single recipe for a contributor or a future workflow to call instead
-# of naming each scanner.
-security: gitleaks
+# the code's style. Secret scanning opens the list and the dependency
+# audit follows it; the static analysis pass will close the set once it
+# lands. Bundling them spares a contributor — or the workflow that calls
+# the gate in CI — from spelling out each scanner by hand.
+security: gitleaks audit
 
 # --- Dependencies ---
 
