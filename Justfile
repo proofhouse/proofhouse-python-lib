@@ -361,6 +361,29 @@ cover-slot slot="local":
     uv run pytest --cov --cov-branch --cov-fail-under=0 -n auto
     uv run coverage xml -o coverage.xml
 
+# --- Security ---
+
+# Walk the working tree and every commit in history for secrets that
+# slipped into the source. `gitleaks git` diffs each commit against the
+# binary's bundled regex and entropy rules; a hit reports the file,
+# line, commit, and rule, enough to trace the leak without a second
+# pass. A credential baked into a published wheel ships to every
+# installer and lingers in the sdist's packed history, so the full
+# scan guards what a release would otherwise hand out. The pin lives in
+# the Brewfile and moves forward with `brew upgrade gitleaks`. This one
+# stays a local recipe on purpose: GitHub's own secret scanning with
+# push protection holds the same line on the hosted side, so no CI job
+# duplicates it.
+gitleaks:
+    gitleaks git --verbose .
+
+# One entry point for the scanners that vet the supply chain rather than
+# the code's style. It opens with secret scanning today; the dependency
+# audit and the SAST pass slot in beside it as they arrive, leaving a
+# single recipe for a contributor or a future workflow to call instead
+# of naming each scanner.
+security: gitleaks
+
 # --- Dependencies ---
 
 # Check that uv.lock is in sync with pyproject.toml. CI runs this on
