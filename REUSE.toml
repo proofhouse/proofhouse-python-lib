@@ -38,7 +38,7 @@ path = [
     "pyproject.toml",
     "uv.lock",
 ]
-SPDX-FileCopyrightText = "Authors of Proofhouse"
+SPDX-FileCopyrightText = "Copyright Authors of Proofhouse"
 SPDX-License-Identifier = "Apache-2.0"
 
 # Repository automation: workflows, CODEOWNERS, linter and Renovate
@@ -46,7 +46,7 @@ SPDX-License-Identifier = "Apache-2.0"
 # files in these trees are covered as they land.
 [[annotations]]
 path = [".github/**", ".claude/**"]
-SPDX-FileCopyrightText = "Authors of Proofhouse"
+SPDX-FileCopyrightText = "Copyright Authors of Proofhouse"
 SPDX-License-Identifier = "Apache-2.0"
 
 # The project-authored Vale style rules and vocabulary. Synced
@@ -54,5 +54,5 @@ SPDX-License-Identifier = "Apache-2.0"
 # reach the linter, which only walks tracked files.
 [[annotations]]
 path = [".vale/**"]
-SPDX-FileCopyrightText = "Authors of Proofhouse"
+SPDX-FileCopyrightText = "Copyright Authors of Proofhouse"
 SPDX-License-Identifier = "Apache-2.0"
