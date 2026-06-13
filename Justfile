@@ -112,7 +112,8 @@ build-repro-check:
 
 # Clean build artifacts
 clean:
-    rm -rf dist .pytest_cache
+    rm -rf dist .pytest_cache htmlcov coverage.xml
+    rm -f .coverage .coverage.*
 
 # --- Format ---
 
@@ -287,6 +288,65 @@ lint-commit-msg:
 # Run tests
 test *args:
     uv run pytest "$@"
+
+# Run the suite under branch coverage and hold it to the floor. A bare
+# `--cov` reads `source` from [tool.coverage.run], so the package gets
+# measured rather than the tests; `--cov-branch` records which arm of
+# each fork ran. The report and the fail_under threshold come from
+# [tool.coverage.report]. This is the inner loop: run it, read the
+# Missing column, write the test that reaches the unreached arm.
+cover:
+    uv run pytest --cov --cov-branch
+
+# Build the line-by-line HTML report under htmlcov/ and print where it
+# lands. Each statement and branch arm is shaded by whether a test
+# reached it, which pins down the exact line a new test still owes.
+cover-html:
+    uv run pytest --cov --cov-branch
+    uv run coverage html
+    @echo "open htmlcov/index.html"
+
+# Write Cobertura XML from whatever .coverage already holds. That format
+# is what diff-cover reads and what the CI upload action publishes, so
+# this assumes a `cover` or `cover-slot` run produced the data first.
+cover-xml:
+    uv run coverage xml -o coverage.xml
+
+# Fail when a line touched since [base] is not covered. The whole-tree
+# floor already sits at 100%, so on a clean branch this adds nothing; it
+# earns its keep by catching a diff that strips coverage from edited
+# lines before the slower combined total recomputes in CI. Reads
+# coverage.xml, so run `cover-xml` first (CI does).
+cover-diff base="origin/main":
+    uv run diff-cover coverage.xml --compare-branch={{ base }} --fail-under=100
+
+# Re-read the existing .coverage data and re-check the threshold without
+# rerunning the suite — handy after editing exclude_also to confirm the
+# total still holds without paying for another run.
+cover-check:
+    uv run coverage report
+
+# Fold every slot's data file into one .coverage, hold the merged total
+# to the floor, and render the combined Cobertura. This is the binding
+# gate: a branch no single platform happens to run still has to be
+# reached somewhere, and the merged report is the proof. The CI coverage
+# job runs this after pulling down the per-slot artifacts.
+cover-combine:
+    uv run coverage combine
+    uv run coverage report --fail-under=100
+    uv run coverage xml -o coverage.xml
+
+# Record one matrix slot's coverage into a slot-named data file and
+# render that slot's Cobertura. COVERAGE_FILE tags the data file with
+# the slot so the downstream job can combine every slot losslessly;
+# --cov-fail-under=0 hands the threshold off to that combined check,
+# since one slot need not carry the whole library on its own. CI passes
+# the os/python pair as the slot name.
+[script]
+cover-slot slot="local":
+    export COVERAGE_FILE=".coverage.{{ slot }}"
+    uv run pytest --cov --cov-branch --cov-fail-under=0
+    uv run coverage xml -o coverage.xml
 
 # --- Dependencies ---
 

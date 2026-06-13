@@ -16,6 +16,7 @@ dependencies = []
 dev = [
     { include-group = "test" },
     "complexipy>=5.5.0",
+    "diff-cover>=10.3.0",
     "import-linter>=2.11",
     "pylint>=4.0.5",
     "pyrefly>=1.0.0",
@@ -23,8 +24,13 @@ dev = [
     "ruff>=0.15.17",
     "vulture>=2.16",
 ]
+# pytest-cov belongs to the test group, not dev: the matrix syncs that
+# group alone, and each slot calls `just cover-slot` to record its own
+# coverage. diff-cover sits up in dev because the lone coverage job —
+# never a per-slot run — invokes it.
 test = [
     "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
     "pytest-mock>=3.15.1",
 ]
 
@@ -105,6 +111,49 @@ min-similarity-lines = 4
 # logic worth deduplicating, so both stay outside the comparison.
 ignore-imports = true
 ignore-docstrings = true
+
+[tool.coverage.run]
+# Track which arm of each conditional a test takes, not merely which
+# lines run. The engine is dense with branches — every precedence
+# comparison in the parser, every operator case the evaluator and
+# formatter match on — and a perfect line score can still leave one
+# side of such a fork never taken. Branch mode is what surfaces that.
+branch = true
+# Instrument the published package, leaving the suite itself out of the
+# tally. A test that runs but asserts nothing would otherwise score its
+# own lines as covered; the later property and mutation gates are what
+# confirm the suite actually pins the engine's behavior.
+source = ["src"]
+# Record each measured path relative to the repo root. The CI matrix
+# writes one data file per slot and a downstream job combines them, and
+# an absolute path baked in on a Windows runner would refuse to line up
+# with the same module measured on Linux.
+relative_files = true
+
+[tool.coverage.report]
+# The bar this gate sets: no line of the engine ships without a test
+# reaching it. A genuinely unreachable line earns a documented entry in
+# exclude_also below, never a threshold dialed under 100.
+fail_under = 100
+show_missing = true
+# Patterns whose lines stand outside the count, each with the reason it
+# cannot run under the suite. The set starts here and grows only when a
+# new construct provably cannot execute, not to paper over a missing test.
+exclude_also = [
+    # A TYPE_CHECKING block exists for the type checker alone and never
+    # executes at import time.
+    "if TYPE_CHECKING:",
+    # assert_never guards a match arm pyrefly has already proven dead;
+    # were the suite to reach it, that would be a bug, not a tested path.
+    # Excluding the arm's `case _:` introducer drops both the line and
+    # the impossible edge into it; the assert_never body documents and
+    # type-checks the guarantee.
+    "case _:",
+    "assert_never\\(",
+    # The __main__ entry guard runs only when a module is executed as a
+    # script, which the suite never does.
+    "if __name__ == \"__main__\":",
+]
 
 [tool.pytest]
 addopts = ["-ra", "--strict-markers", "--strict-config", "--import-mode=importlib"]

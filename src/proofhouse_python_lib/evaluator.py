@@ -4,6 +4,7 @@
 """Exact-arithmetic evaluator walking an expression AST."""
 
 from fractions import Fraction
+from typing import assert_never
 
 from proofhouse_python_lib.ast import (
     BinaryOp,
@@ -31,6 +32,8 @@ def evaluate(expr: Expr) -> Fraction:
             return -evaluate(operand)
         case BinaryOp(op, left, right):
             return _apply_binary(op, evaluate(left), evaluate(right))
+        case _:
+            assert_never(expr)
 
 
 def evaluate_text(text: str) -> Fraction:
@@ -50,3 +53,5 @@ def _apply_binary(op: BinaryOperator, left: Fraction, right: Fraction) -> Fracti
             if right == 0:
                 raise DivisionByZeroError
             return left / right
+        case _:
+            assert_never(op)
