@@ -2,25 +2,31 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
 
   // This repo's Renovate config is mostly shared org policy, pulled in from
-  // the two presets in proofhouse/github-actions:
+  // the repository-level preset in proofhouse/github-actions:
   //
-  //   - renovate-global-config.json5 via globalExtends — the global-only
-  //     identity, rate limits, and requireConfig (resolved at global-config
-  //     time, the only scope where those options take effect).
   //   - renovate-config.json5 via extends — the repository-level rules plus
   //     the Justfile and Vale custom managers shared by every repo.
   //
+  // The global-only identity, rate limits, and requireConfig below used to
+  // come from renovate-global-config.json5 via globalExtends, but Renovate
+  // resolves globalExtends presets before host credentials are registered,
+  // so that fetch was always anonymous and intermittently hit GitHub's
+  // per-IP rate limit (config-presets-invalid). They are inlined here
+  // instead; this file is the global config file passed via
+  // configurationFile, so global-only options are valid at this level.
+  //
   // No language specifics stay inline below: Renovate's pep621 manager
   // picks up pyproject.toml on its own and refreshes uv.lock as the update
-  // artifact, so the only local option is the repository scope.
-  globalExtends: [
-    "github>proofhouse/github-actions//.github/renovate-global-config.json5",
-  ],
+  // artifact.
+  requireConfig: "ignored",
+  username: "proofhouse-renovate[bot]",
+  gitAuthor: "proofhouse-renovate[bot] <289255489+proofhouse-renovate[bot]@users.noreply.github.com>",
+  prConcurrentLimit: 0,
+  prHourlyLimit: 0,
   extends: [
     "github>proofhouse/github-actions//.github/renovate-config.json5",
   ],
 
-  // Single-repo scope. The one global-only option that can't move to the
-  // shared preset — it differs per repo.
+  // Single-repo scope. The global-only option that differs per repo.
   repositories: ["proofhouse/proofhouse-python-lib"],
 }
