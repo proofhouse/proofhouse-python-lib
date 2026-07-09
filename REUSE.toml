@@ -32,6 +32,8 @@ path = [
     "CHANGELOG.md",
     "CLAUDE.md",
     "Justfile",
+    "apm.lock.yaml",
+    "apm.yml",
     "biome.json",
     "cog.toml",
     "cosmic-ray.toml",
