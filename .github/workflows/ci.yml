@@ -50,7 +50,7 @@ jobs:
         uses: proofhouse/github-actions/.github/actions/setup-just@8fc147c5b166239ee72e04ffc17dc85a40888d0e # v0.2.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
 
       - name: Run Python lint gates
         run: just lint-py-all
@@ -73,7 +73,7 @@ jobs:
         uses: proofhouse/github-actions/.github/actions/setup-just@8fc147c5b166239ee72e04ffc17dc85a40888d0e # v0.2.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
 
       - name: Check lock drift
         run: just lock-check
@@ -100,7 +100,7 @@ jobs:
         uses: proofhouse/github-actions/.github/actions/setup-just@8fc147c5b166239ee72e04ffc17dc85a40888d0e # v0.2.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
 
       - name: Audit the locked dependency closure
         run: just audit
@@ -151,7 +151,7 @@ jobs:
         uses: proofhouse/github-actions/.github/actions/setup-just@8fc147c5b166239ee72e04ffc17dc85a40888d0e # v0.2.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
 
       - name: Install Python ${{ matrix.python }}
         run: uv python install ${{ matrix.python }}
@@ -238,7 +238,7 @@ jobs:
         uses: proofhouse/github-actions/.github/actions/setup-just@8fc147c5b166239ee72e04ffc17dc85a40888d0e # v0.2.1
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
 
       # The combine and diff steps run out of the dev group: diff-cover
       # lives there, and coverage rides in beside pytest-cov.
