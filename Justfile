@@ -294,7 +294,7 @@ lint-bandit:
 # in apm.lock.yaml, so the consumer can't reword it); the per-file-type
 # rules in .vale.ini decide what else gets inspected.
 lint-prose *args:
-    vale --output=proofhouse-agent.tmpl --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*,.complexipy_cache/*,apm_modules/*,.claude/rules/worktree-wip.md,.claude/skills/*}' {{ if args == "" { "." } else { args } }}
+    vale --output=proofhouse-agent.tmpl --glob='!{LICENSE,CHANGELOG.md,.vale/*,tmp/*,.claude/worktrees/*,COMMIT_AGENTMSG,.venv/*,dist/*,.pytest_cache/*,.complexipy_cache/*,apm_modules/*,.claude/rules/*,.claude/skills/*}' {{ if args == "" { "." } else { args } }}
 
 # Check spelling across the tree against the project dictionary at
 # .cspell-words.txt. cspell ignores binaries, generated files, the
