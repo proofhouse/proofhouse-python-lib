@@ -67,6 +67,12 @@ actionlint_image := "docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f
 # itself isn't on the calling shell's PATH.
 actionlint := 'DOCKER_CONFIG="$(mktemp -d)" PATH="$(dirname ' + container_runtime + '):$PATH" ' + container_runtime + ' run --rm -v "$(pwd):/repo:ro" -w /repo ' + actionlint_image
 
+# renovate: datasource=docker depName=ghcr.io/gitleaks/gitleaks
+
+gitleaks_version := "v8.28.0"
+gitleaks_image := "ghcr.io/gitleaks/gitleaks:v8.28.0@sha256:cdbb7c955abce02001a9f6c9f602fb195b7fadc1e812065883f695d1eeaba854"
+gitleaks_scan := 'DOCKER_CONFIG="$(mktemp -d)" PATH="$(dirname ' + container_runtime + '):$PATH" ' + container_runtime + ' run --rm -v "$(pwd):/repo" -w /repo ' + gitleaks_image
+
 # Build metadata. `source_date_epoch` is the committer date as a unix
 # timestamp, not build invocation time, so two builds of the same
 # commit see the same instant wherever SOURCE_DATE_EPOCH is honored.
@@ -597,13 +603,13 @@ fuzz:
 # line, commit, and rule, enough to trace the leak without a second
 # pass. A credential baked into a published wheel ships to every
 # installer and lingers in the sdist's packed history, so the full
-# scan guards what a release would otherwise hand out. The pin lives in
-# the Brewfile and moves forward with `brew upgrade gitleaks`. This one
-# stays a local recipe on purpose: GitHub's own secret scanning with
-# push protection holds the same line on the hosted side, so no CI job
-# duplicates it.
+# scan guards what a release would otherwise hand out. The scan runs
+# from a digest-pinned image, so the rule set moves only when Renovate
+# bumps the version and digest pair. This one stays a local recipe on
+# purpose: GitHub's own secret scanning with push protection holds the
+# same line on the hosted side, so no CI job duplicates it.
 gitleaks:
-    gitleaks git --verbose .
+    {{ gitleaks_scan }} git --verbose .
 
 # Audit the resolved dependency closure against the OSV and PyPI
 # advisory feeds. The subject is the lock, not the live `.venv`: pip-audit
