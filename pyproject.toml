@@ -58,6 +58,15 @@ test = [
 requires = ["uv_build>=0.11.21,<0.12.0"]
 build-backend = "uv_build"
 
+# cosmic-ray drags GitPython in transitively and constrains nothing, so
+# the resolver is free to settle on a release carrying the 2026 argument
+# and option injection advisories (GHSA-94p4-4cq8-9g67 and the seven
+# before it). Nothing here imports GitPython, and the mutation tooling
+# never runs it over untrusted input, but a dev-only path is still a
+# path: the floor keeps the locked closure on a patched line.
+[tool.uv]
+constraint-dependencies = ["gitpython>=3.1.55"]
+
 [tool.bandit]
 # bandit reads this table when the recipe passes `-c pyproject.toml`.
 # The scan walks src alone (the recipe names it), and exclude_dirs keeps
