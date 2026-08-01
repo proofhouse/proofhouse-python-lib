@@ -33,7 +33,17 @@ excluded-modules = [
 # multiplies across the work order. `-x` stops at the first failing
 # assertion, the whole signal a kill carries, and leaving --cov off
 # spares a per-mutant coverage write the figure never reads.
-test-command = "uv run pytest -q -x"
+#
+# The interpreter comes from `.venv` directly rather than through
+# `uv run`. cosmic-ray times a mutant out with subprocess.run(timeout=),
+# which signals only its immediate child. Behind `uv run` that child is
+# uv itself and pytest is a grandchild, so a timeout reaped the wrapper
+# and left pytest alive; every sweep ended by terminating orphaned
+# pytest processes. Naming the interpreter makes pytest the direct
+# child, so the timeout reaches the process it is meant to stop. The
+# recipes already invoke cosmic-ray under `uv run`, so the environment
+# exists by the time this command runs.
+test-command = ".venv/bin/pytest -q -x"
 
 [cosmic-ray.distributor]
 # Mutate in-process on the local machine. The http distributor farms the
