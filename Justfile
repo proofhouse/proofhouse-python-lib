@@ -1,5 +1,5 @@
-set unstable := true
-set positional-arguments := true
+set unstable
+set positional-arguments
 
 # Run [script] recipes under bash rather than the default sh. On Linux
 # sh is dash, which lacks [[ ]], <<<, and set -o pipefail — constructs
@@ -14,6 +14,13 @@ set script-interpreter := ['bash', '-eu']
 # well-known install locations so the recipe still works inside agentic
 # harnesses or sandboxes that strip /usr/local/bin from PATH. Override by
 # setting CONTAINER_RUNTIME in the environment.
+#
+# The continuation lines of the `for` list below hang under the first
+# candidate path rather than on a two-space grid, which is what shell
+# style calls for and what `lint-editorconfig` would otherwise reject
+# under this file's indent_size = 2. Exempt just that span rather than
+# re-indent a block the sibling repos carry verbatim.
+# editorconfig-checker-disable
 container_runtime := env("CONTAINER_RUNTIME", `bash -c '
     docker_path=$(command -v docker 2>/dev/null || true)
     podman_path=$(command -v podman 2>/dev/null || true)
@@ -29,6 +36,8 @@ container_runtime := env("CONTAINER_RUNTIME", `bash -c '
     done
     echo docker
 '`)
+
+# editorconfig-checker-enable
 
 # actionlint version pin. The upstream image bundles actionlint (and the
 # shellcheck it shells out to) at a known version, so we pin the image
@@ -146,6 +155,17 @@ format-config *args:
 format-toml:
     tombi format
 
+# Rewrite this Justfile in just's canonical formatting. Read-only twin
+# is `lint-just`. --unstable is required because `--fmt` is still gated
+# behind just's unstable flag; the `set unstable` at the top of the file
+# governs recipe attributes, not command-line subcommands, so the flag
+# has to be passed here as well. The one rewrite adopting this gate cost
+# was collapsing that pair of `:= true` settings to their bare form —
+# 1.51.0 (the version CI installs) and the current Homebrew release
+# agree on the result, so the gate reads the same on both sides.
+format-just:
+    just --fmt --unstable
+
 # --- Fix ---
 
 # Apply ruff's auto-fixes, then format. The order matters: `check
@@ -170,9 +190,11 @@ lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode
 
 # Run every linter that operates on the source tree. Aggregator over
 # the Python gates (via `lint-py-all`), prose (vale), spelling
-# (cspell), Markdown (rumdl), config / JS / TS (biome), and YAML
-# (yamllint).
-lint: lint-py-all lint-prose lint-spelling lint-markdown lint-config lint-yaml lint-toml
+# (cspell), Markdown (rumdl), config / JS / TS (biome), YAML
+# (yamllint), TOML (tombi), this Justfile's own formatting
+# (just --fmt), and the tree-wide .editorconfig baseline
+# (editorconfig-checker).
+lint: lint-py-all lint-prose lint-spelling lint-markdown lint-config lint-yaml lint-toml lint-just lint-editorconfig
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`. The path-less invocation deliberately walks the whole
@@ -323,6 +345,32 @@ check-tombi-version:
     else
         echo "tombi ${local} matches the verified release"
     fi
+
+# Check that just's own formatter would change nothing in this Justfile.
+# Read-only twin of `format-just`; run that to apply the rewrite. The
+# build tool that every other gate is invoked through was itself the one
+# file no gate read, so this closes that loop. See `format-just` for why
+# --unstable is spelled out on the command line.
+lint-just:
+    just --fmt --check --unstable
+
+# Check every tracked file against the rules in .editorconfig — charset,
+# line endings, final newline, trailing whitespace, indent style and
+# size. The other gates each own one language; this one holds the
+# baseline that spans all of them, including the file types no linter in
+# the set reads (.gitattributes, .python-version, the LICENSES texts).
+# Scope and behavior come from .editorconfig-checker.json, whose Exclude
+# list mirrors the top-level `exclude:` in .pre-commit-config.yaml so the
+# hook and the recipe judge the same files, plus CHANGELOG.md, which
+# `cog changelog` regenerates wholesale and leaves without a final
+# newline every release — the vale hook and the prose recipes already
+# skip it for that reason. The tool's own default excludes drop uv.lock
+# and binary formats on top of that. Upstream's release archives name the
+# binary `ec`, but the Homebrew formula this repo installs from builds
+# `cmd/editorconfig-checker` and ships the long name only, so the recipe
+# spells that out. The pin lives in the Brewfile.
+lint-editorconfig:
+    editorconfig-checker
 
 # Lint GitHub Actions workflow files via actionlint. actionlint walks
 # `.github/workflows/` by default, parses each workflow, and flags

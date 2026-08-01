@@ -4,19 +4,19 @@ Guidance for AI coding agents working in this repository. Read it alongside the 
 
 ## Commit messages
 
-Draft every commit message in `COMMIT_AGENTMSG` at the repo root before you run `git commit`. A gitignore entry keeps that file out of history, so it serves purely as a scratchpad for iterating on the message. Three steps make up the workflow.
+Draft every commit message in `COMMIT_AGENTMSG` at the repo root before you run `git commit`. A gitignore entry keeps that file out of history, so it serves purely as a scratchpad for iterating on the message.
 
 1. Write the full message (subject, body, and trailers) to `COMMIT_AGENTMSG`.
 2. Run `just lint-commit-msg` and resolve whatever it reports.
 3. Commit the validated draft with `git commit -F COMMIT_AGENTMSG`.
 
-`just lint-commit-msg` mirrors the commit-msg hook: vale under the commit scope (which catches AI commit tells via `ai-tells-commits`), cspell with the commit dictionary, commitlint for the Conventional Commits shape, and commit-trailers for trailer order. Running it while drafting surfaces problems early, rather than at the commit-msg hook where a late failure interrupts the commit.
+`just lint-commit-msg` mirrors the commit-msg hook and its four gates. vale reads the message under the commit scope, where `ai-tells-commits` catches AI commit tells. cspell reads it against the commit dictionary. commitlint checks the Conventional Commits shape, and commit-trailers checks trailer order. Running it while drafting surfaces problems early, rather than at the commit-msg hook where a late failure interrupts the commit.
 
 The prek commit-msg hook on `.git/COMMIT_EDITMSG` stays the real gate. `COMMIT_AGENTMSG` and its recipe only preview that gate, so a clean recipe run predicts a clean commit but never replaces the hook.
 
 ## Coverage pragmas
 
-The branch-coverage gate holds at 100%, so an unreached arm marks a hole in the suite rather than a reason to lower the bar. Closing that hole almost always wants a test that drives the arm. The exhaustiveness sentinels at the foot of each `match` over the AST form the one standing exception, and the `exclude_also` patterns in `[tool.coverage.report]` already account for them. Reach for an inline `# pragma: no cover` only when a line truly can't run under test and no standing pattern fits, and pair it with an adjacent comment that names what holds the line unreachable. Reviewers reject a bare pragma carrying no such defense, the same way they reject an undocumented lint suppression.
+The branch-coverage gate holds at 100%, so an unreached arm marks a hole in the suite rather than a reason to lower the bar. Closing that hole almost always wants a test that drives the arm. The exhaustiveness sentinels at the foot of each `match` over the AST form the one standing exception, and the `exclude_also` patterns in `[tool.coverage.report]` already account for them. Reach for an inline `# pragma: no cover` only when a line truly can't run under test and no standing pattern fits, and pair it with an adjacent comment that names what makes the line unreachable. Reviewers reject a bare pragma carrying no such defense, the same way they reject an undocumented lint suppression.
 
 ## Prose lint output
 

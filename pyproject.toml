@@ -220,6 +220,11 @@ preset = "strict"
 # gate, so it answers to the same strict checker the engine does rather
 # than slipping past as an unchecked side script.
 project-includes = ["src", "tests", "tools"]
+# pyrefly infers src as the one import root, which leaves `tools.mutscope`
+# unresolvable from the test that reads it. The repository root joins the
+# roster so that import resolves the same way the suite resolves it at
+# runtime, where tests/unit/conftest.py puts the root on sys.path.
+search-path = [".", "src"]
 
 [tool.pyrefly.errors]
 abstract-method-call = "error"

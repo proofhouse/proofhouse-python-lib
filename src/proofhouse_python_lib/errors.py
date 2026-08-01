@@ -28,8 +28,8 @@ class DivisionByZeroError(ExpressionError):
     """Raised when evaluation divides by a zero divisor.
 
     The AST carries no source positions, so this error carries none
-    either: it names a structural fact about the tree, not a span of
-    input text the way LexError and ParseError do.
+    either. It names a structural fact about the tree, where LexError
+    and ParseError each point at a span of input text.
     """
 
     def __init__(self) -> None:
