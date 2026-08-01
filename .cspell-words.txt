@@ -13,6 +13,7 @@ dunder
 dupl
 EDITMSG
 excinfo
+GHSA
 gocognit
 goheader
 golangci
