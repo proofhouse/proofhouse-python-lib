@@ -24,6 +24,8 @@
   prConcurrentLimit: 0,
   prHourlyLimit: 0,
   extends: [
+    // TEMPORARY PROBE - do not merge. Names a preset that does not exist.
+    "github>proofhouse/github-actions//.github/no-such-preset.json5",
     "github>proofhouse/github-actions//.github/renovate-config.json5",
   ],
 
