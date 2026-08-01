@@ -17,15 +17,15 @@ module-path = "src/proofhouse_python_lib"
 timeout = 30.0
 
 excluded-modules = [
-    # The testing subpackage ships in the wheel for downstream property
-    # suites, but its body is generator plumbing: hypothesis strategies
-    # that draw tokens and expression trees. Their one mutable surface is
-    # a draw bound such as a recursion depth; an assertion fastening that
-    # would grade hypothesis's own sampling rather than this library's
-    # arithmetic. The behavioral targets stay where the value is — the
-    # precedence-climbing parser, the exact-rational evaluator, and the
-    # minimal-parenthesis formatter.
-    "src/proofhouse_python_lib/testing/*.py",
+  # The testing subpackage ships in the wheel for downstream property
+  # suites, but its body is generator plumbing: hypothesis strategies
+  # that draw tokens and expression trees. Their one mutable surface is
+  # a draw bound such as a recursion depth; an assertion fastening that
+  # would grade hypothesis's own sampling rather than this library's
+  # arithmetic. The behavioral targets stay where the value is — the
+  # precedence-climbing parser, the exact-rational evaluator, and the
+  # minimal-parenthesis formatter.
+  "src/proofhouse_python_lib/testing/*.py",
 ]
 
 # A stripped pytest run: no coverage plugin, no xdist. cosmic-ray reruns

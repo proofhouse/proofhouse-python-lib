@@ -36,6 +36,15 @@ container_runtime := env("CONTAINER_RUNTIME", `bash -c '
 # tracks the version + digest pair via the Justfile customManager in
 # the shared org preset (see .github/renovate.json5).
 #
+# The tombi release this repo's config and committed formatting are
+# verified against. tombi is brew-installed, so `check-tombi-version`
+# compares the local binary with it: a mismatch means local formatting
+# may differ from what the gate expects.
+
+# renovate: datasource=github-releases depName=tombi-toml/tombi
+
+tombi_version := "1.2.5"
+
 # renovate: datasource=docker depName=rhysd/actionlint
 actionlint_version := "1.7.12"
 actionlint_image := "docker.io/rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667"
@@ -119,7 +128,7 @@ clean:
 
 # Format Python source in place via ruff's formatter. The read-only
 # counterpart `lint-ruff-format` runs in CI and the aggregator.
-format *args:
+format *args: format-toml
     uv run ruff format {{ args }}
 
 # Format Markdown files (whitespace, list markers, code fence styles).
@@ -130,6 +139,12 @@ format-markdown *args:
 # Format JSON / JS / TS files in place via biome's formatter.
 format-config *args:
     biome format --write {{ if args == "" { "." } else { args } }}
+
+# In-place TOML formatter (tombi 1.2.0) — the fixer paired with `lint-toml`'s --check
+# gate. Rewrites whitespace/style only; key and array order are preserved (schema-driven
+# reordering is disabled in tombi.toml). Excludes and lockfile skips come from tombi.toml.
+format-toml:
+    tombi format
 
 # --- Fix ---
 
@@ -157,7 +172,7 @@ lint-py-all: lint-ruff-format lint-ruff lint-types lint-complexity lint-deadcode
 # the Python gates (via `lint-py-all`), prose (vale), spelling
 # (cspell), Markdown (rumdl), config / JS / TS (biome), and YAML
 # (yamllint).
-lint: lint-py-all lint-prose lint-spelling lint-markdown lint-config lint-yaml
+lint: lint-py-all lint-prose lint-spelling lint-markdown lint-config lint-yaml lint-toml
 
 # Check that ruff's formatter would change nothing. Read-only twin of
 # `just format`. The path-less invocation deliberately walks the whole
@@ -278,6 +293,36 @@ lint-config *args:
 # tuning lives in .yamllint.yaml.
 lint-yaml *args:
     yamllint --strict {{ if args == "" { "." } else { args } }}
+
+# tombi is the org TOML gate (tombi 1.2.0): it lint-checks every tracked *.toml.
+# Cargo.toml/pyproject.toml validate offline against embedded SchemaStore schemas;
+# cog.toml, .rumdl.toml, REUSE.toml, deny.toml et al. get syntax + style checks. We run
+# the format gate in --check --diff mode here as well, so an unformatted TOML file fails
+# `just lint` without being rewritten (`just format-toml` is the in-place fixer).
+# --offline keeps CI hermetic against SchemaStore; --error-on-warnings promotes warnings
+# to hard failures (matching the org -D-warnings / --max-warnings=0 posture). Scope
+# (include/exclude, lockfile skips, schema.strict=false) lives in tombi.toml, so this
+# recipe passes NO path args — tombi walks the tree per that config. This deliberately
+# departs from the sibling `*args`-default-`.` idiom because tombi centralizes scoping in
+# tombi.toml rather than on the CLI, keeping excludes in one place.
+lint-toml:
+    tombi format --check --diff
+    tombi lint --offline --error-on-warnings
+
+# Warn when the locally installed tombi differs from the verified
+# release. Advisory rather than fatal: tombi comes from Homebrew and
+# moves on its own schedule, and that is fine so long as it stays
+# visible rather than silently reformatting a file the gate then
+# rejects.
+[script]
+check-tombi-version:
+    local=$(tombi --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    if [[ "${local}" != "{{ tombi_version }}" ]]; then
+        echo "warning: local tombi ${local} != verified {{ tombi_version }}" >&2
+        echo "         formatting may differ from what the gate expects" >&2
+    else
+        echo "tombi ${local} matches the verified release"
+    fi
 
 # Lint GitHub Actions workflow files via actionlint. actionlint walks
 # `.github/workflows/` by default, parses each workflow, and flags

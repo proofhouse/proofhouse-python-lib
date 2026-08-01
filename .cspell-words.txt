@@ -23,6 +23,7 @@ hardwrap
 htmlcov
 hypofuzz
 importlinter
+lockfiles
 matrixed
 mutscope
 orbstack
@@ -32,6 +33,7 @@ prek
 proofhouse
 pylint
 pylock
+pyproject
 rhysd
 roundtrips
 rumdl
@@ -41,7 +43,9 @@ shellcheck
 tbhb
 testpaths
 tmpl
+tombi
 Tricolon
+venv
 worktree
 worktrees
 xdist
