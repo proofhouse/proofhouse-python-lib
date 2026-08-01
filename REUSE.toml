@@ -19,6 +19,7 @@ path = [
   ".cspell-words.txt",
   ".cspell.jsonc",
   ".editorconfig",
+  ".editorconfig-checker.json",
   ".gitattributes",
   ".gitignore",
   ".pre-commit-config.yaml",
